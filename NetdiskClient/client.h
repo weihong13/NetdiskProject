@@ -17,13 +17,12 @@ public:
     ~Client();
     // 加载配置文件
     void loadConfig();
-    // 连接成功展示
+    // 槽函数-连接成功展示
     void showConnected();
     // 获取网络连接
     QTcpSocket& getTcpSocket();
     // 定义静态成员函数 获取单例对象
     static Client& getInstance();
-
 
 private:
     Ui::Client *ui;
@@ -34,7 +33,7 @@ private:
     // 设置网络连接
     QTcpSocket m_tcpSocket;
 
-    // 防止通过以下途径 创建实例。
+    // 防止通过以下途径创建实例。
     // 私有化构造函数
     Client(QWidget *parent = nullptr);
     // 删除拷贝构造

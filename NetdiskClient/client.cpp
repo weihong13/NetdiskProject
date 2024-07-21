@@ -5,7 +5,6 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QHostAddress>
-#include <QMessageBox>
 
 Client::Client(QWidget *parent)
     : QWidget(parent)
@@ -55,10 +54,10 @@ void Client::loadConfig()
     m_strIP = strList.at(0);
     // 读取端口号--端口号是2个字节16位的short类型，范围是0~65535
     m_uintPort = strList.at(1).toUShort();
-
     // 测试--分别打印IP和端口号
-    qDebug()<<"strIP: "<<m_strIP;
-    qDebug()<<"uintPort: "<<m_uintPort;
+    // qDebug()<<"strIP: "<<m_strIP;
+    // qDebug()<<"uintPort: "<<m_uintPort;
+
     // 关闭文件
     file.close();
 }
@@ -69,7 +68,6 @@ void Client::showConnected()
     // 消息对话框，展示连接成功。
     QMessageBox* msgBox = new QMessageBox;
     msgBox->information(this,"建立连接","连接成功");
-    msgBox->exec();
 }
 
 // 获取网络连接
@@ -78,13 +76,11 @@ QTcpSocket& Client::getTcpSocket()
     return m_tcpSocket;
 }
 
-// 定义静态成员函数 获取单例对象
+// 实现静态成员函数 获取单例对象
 Client &Client::getInstance()
 {
     // 返回静态局部引用对象，防止调用拷贝构造，静态变量只能赋值一次
+    // 在C++11之后，默认支持线程安全
     static Client instance;
     return instance;
 }
-
-
-
