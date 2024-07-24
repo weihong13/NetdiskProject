@@ -3,6 +3,9 @@
 
 #include <QWidget>
 #include <QTcpSocket>
+#include <QPushButton>
+#include <QLineEdit>
+#include "protocol.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Client; }
@@ -24,6 +27,12 @@ public:
     // 定义静态成员函数 获取单例对象
     static Client& getInstance();
 
+    // 添加消息框和发送按钮的控件
+    void set_Control();
+public slots:
+    // 客户端发送消息的槽函数
+    void sendMsg();
+
 private:
     Ui::Client *ui;
     // IP地址
@@ -32,6 +41,10 @@ private:
     quint16 m_uintPort;
     // 设置网络连接
     QTcpSocket m_tcpSocket;
+
+    // 发送按钮
+    QPushButton* sendBnt;
+    QLineEdit* lineEdit;
 
     // 防止通过以下途径创建实例。
     // 私有化构造函数
