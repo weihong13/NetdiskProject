@@ -27,4 +27,6 @@ struct PDU
 
 };
 
+// 定义PDU初始化函数
+PDU* initPDU(uint uiMsgLen);
 #endif // PROTOCOL_H
