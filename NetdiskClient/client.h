@@ -27,11 +27,12 @@ public:
     // 定义静态成员函数 获取单例对象
     static Client& getInstance();
 
-    // 添加消息框和发送按钮的控件
-    void set_Control();
 public slots:
     // 客户端发送消息的槽函数
-    void sendMsg();
+    // void sendMsg();
+
+    // 接收消息
+    void recvMsg();
 
 private:
     Ui::Client *ui;
@@ -42,9 +43,9 @@ private:
     // 设置网络连接
     QTcpSocket m_tcpSocket;
 
-    // 发送按钮
-    QPushButton* sendBnt;
-    QLineEdit* lineEdit;
+
+
+
 
     // 防止通过以下途径创建实例。
     // 私有化构造函数

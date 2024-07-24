@@ -21,12 +21,9 @@ Client::Client(QWidget *parent)
     // 连接成功后，会返回一个连接成功的信号，使用信号槽接收，并显示连接成功
     connect(&m_tcpSocket,&QTcpSocket::connected,this,&Client::showConnected);
 
-    // 添加消息框和发送按钮的控件
-    set_Control();
-    // 将发送按钮与发送消息的槽函数进行关联
-    connect(sendBnt,&QPushButton::clicked,this,&Client::sendMsg);
 
-
+    // 将socket中，接收到信息触发的信号，与取出信息的信号槽函数进行关联
+    connect(&m_tcpSocket,&QTcpSocket::readyRead,this,&Client::recvMsg);
 }
 
 
@@ -92,50 +89,38 @@ Client &Client::getInstance()
     return instance;
 }
 
-// 添加消息框和发送按钮的控件
-void Client::set_Control()
+
+// 接收消息
+void Client::recvMsg()
 {
-    this->lineEdit = new QLineEdit(this);
-    lineEdit->resize(500,30);
-    lineEdit->move(15,20);
-    lineEdit->show();
+    // 打印socket中的数据长度
+    qDebug()<<"socket中接收到的数据长度："<<m_tcpSocket.bytesAvailable();
 
-    this->sendBnt = new QPushButton(this);
-    sendBnt->move(515,20);
-    sendBnt->setText("发送");
-    sendBnt->show();
-}
+    // 读出消息结构体的总长度，这部分内容会从socket中读出去
+    uint uiPDULen = 0; // 传出参数
+    // 读取的大小为 消息结构体总长度的数据类型大小
+    m_tcpSocket.read((char*)&uiPDULen,sizeof(uint));
 
-// 发送消息的槽函数
-void Client::sendMsg()
-{
-   // 读取 lineEdit 中的内容
-   QString strMsg = this->lineEdit->text();
-   if(strMsg.isEmpty()) // 如果当前消息为空，直接返回
-   {
-       return;
-   }
+    // 计算实际消息长度--柔性数组长度(消息结构体总长度-结构体大小)
+    uint uiMsgLen = uiPDULen-sizeof(PDU);
+    // 初始化一个PUD结构体，用于存储
+    PDU* pdu = initPDU(uiMsgLen);
 
-   // 读到消息，获取消息的长度，得先将消息转换为标准的字符串，以便求出长度
-   // 不转的话，中文是没法读全的（一个汉字占好几个字符）
-   uint uiMsgLen = strMsg.toStdString().size();
-   // 初始化PDU，传入的消息长度加一，多加一个消息结束标志
-   PDU* pdu = initPDU(uiMsgLen+1);
-   // 利用函数，将读到消息，存放在PDU中的柔性数组中。
-   // 这里需要按照 memcpy的参数形式，将前两个参数的类型修改为 char*
-   memcpy((char*)pdu->caMsg,strMsg.toStdString().c_str(),uiMsgLen);
-   // 给定消息类型，这里随便给一个就行
-   pdu->uiMsgType = ENUM_MSG_TYPE_REGIST_REQUEST;
+    // 读出socket中剩余的数据，消息结构体的总长度已经被读出去了，剩下的不是一个完整的PDU结构体。
+    // 因此需要对pdu这个指针进行偏移，偏移的长度就是已经读出的数据长度（消息结构体总长度的数据类型大小）
+    // 而剩余需要读出的内容为，消息结构体总长度 减去 消息结构体总长度的数据类型大小
+    m_tcpSocket.read((char*)pdu+sizeof(uint),uiPDULen-sizeof(uint));
 
-   // 测试。查看消息长度，和消息内容是否正确
-   qDebug()<<"uiMsgLen: "<<pdu->uiMsgLen;
-   qDebug()<<"caMsg: "<<pdu->caMsg;
+    // 测试--打印输出消息结构体的内容
+    qDebug()<<"结构体总长度："<<pdu->uiPDULen;
+    qDebug()<<"消息类型："<<pdu->uiMsgType;
+    qDebug()<<"消息长度："<<pdu->uiMsgLen;
+    qDebug()<<"参数1："<<pdu->caData;
+    qDebug()<<"参数2："<<pdu->caData+32;
+    qDebug()<<"接收到的消息："<<pdu->caMsg;
 
-   // 利用socket发送消息。
-   m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
-
-   // 完成消息，释放pdu
-   free(pdu);
-   pdu = NULL;
+    // 释放pdu
+    free(pdu);
+    pdu=NULL;
 
 }
