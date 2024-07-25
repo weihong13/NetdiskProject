@@ -1,5 +1,5 @@
 #include "mytcpsocket.h"
-
+#include "operatedb.h"
 
 MyTcpSocket::MyTcpSocket()
 {
@@ -28,12 +28,77 @@ void MyTcpSocket::recvMsg()
     this->read((char*)pdu+sizeof(uint),uiPDULen-sizeof(uint));
 
     // 测试--打印输出消息结构体的内容
-    qDebug()<<"结构体总长度："<<pdu->uiPDULen;
-    qDebug()<<"消息类型："<<pdu->uiMsgType;
-    qDebug()<<"消息长度："<<pdu->uiMsgLen;
-    qDebug()<<"参数1："<<pdu->caData;
-    qDebug()<<"参数2："<<pdu->caData+32;
-    qDebug()<<"接收到的消息："<<pdu->caMsg;
+//    qDebug()<<"recvMsg 结构体总长度："<<pdu->uiPDULen;
+//    qDebug()<<"recvMsg 消息类型："<<pdu->uiMsgType;
+//    qDebug()<<"recvMsg 消息长度："<<pdu->uiMsgLen;
+//    qDebug()<<"recvMsg 参数1："<<pdu->caData;
+//    qDebug()<<"recvMsg 参数2："<<pdu->caData+32;
+//    qDebug()<<"recvMsg 接收到的消息："<<pdu->caMsg;
+
+    // 根据消息类型对消息进行处理
+    switch (pdu->uiMsgType)
+    {
+        // 注册请求
+        case ENUM_MSG_TYPE_REGIST_REQUEST:
+        {
+            // 将消息取出
+            char caName[32] = {'\0'};
+            char caPwd[32] = {'\0'};
+            memcpy(caName,pdu->caData,32);
+            memcpy(caPwd,pdu->caData+32,32);
+            // 测试
+            qDebug()<<"recvMsg REGIST caName: "<<caName;
+            qDebug()<<"recvMsg REGIST caPwd: "<<caPwd;
+
+            // 处理消息
+            bool ret = OperateDB::getInstance().handleRegist(caName,caPwd);
+
+            // 向客户端发送响应
+            // 初始化响应注册的PDU对象
+            PDU* registPdu = initPDU(0);
+            // 消息类型为注册响应
+            registPdu->uiMsgType = ENUM_MSG_TYPE_REGIST_RESPOND;
+            // 将消息存储到消息结构体
+            memcpy(registPdu->caData,&ret,sizeof(bool));
+            // 利用socket 向客户端发送 注册的响应
+            write((char*)registPdu,registPdu->uiPDULen);
+
+            break;
+        }
+        // 登录请求
+        case ENUM_MSG_TYPE_LOGIN_REQUEST:
+        {
+            // 将消息取出
+            char caName[32] = {'\0'};
+            char caPwd[32] = {'\0'};
+            memcpy(caName,pdu->caData,32);
+            memcpy(caPwd,pdu->caData+32,32);
+            // 测试
+            qDebug()<<"recvMsg LOGIN caName: "<<caName;
+            qDebug()<<"recvMsg LOGIN caPwd: "<<caPwd;
+
+            // 处理消息
+            bool ret = OperateDB::getInstance().handleLogin(caName,caPwd);
+            if(ret)
+            {
+                m_userName = caName;
+            }
+            // 向客户端发送响应
+            // 初始化响应注册的PDU对象
+            PDU* loginPdu = initPDU(0);
+            // 消息类型为注册响应
+            loginPdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_RESPOND;
+            // 将消息存储到消息结构体
+            memcpy(loginPdu->caData,&ret,sizeof(bool));
+            // 利用socket 向客户端发送 注册的响应
+            write((char*)loginPdu,loginPdu->uiPDULen);
+
+            break;
+        }
+
+        default:
+            break;
+    }
 
     // 释放pdu
     free(pdu);

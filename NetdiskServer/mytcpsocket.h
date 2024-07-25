@@ -11,6 +11,9 @@ class MyTcpSocket:public QTcpSocket
     Q_OBJECT
 public:
     MyTcpSocket();
+
+    // 登陆成功的用户名
+    QString m_userName;
 public slots:
     void recvMsg();
 };

@@ -13,6 +13,9 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_REGIST_REQUEST, // 注册用户的请求
     ENUM_MSG_TYPE_REGIST_RESPOND, // 注册用户的响应
 
+    ENUM_MSG_TYPE_LOGIN_REQUEST, // 登录的请求
+    ENUM_MSG_TYPE_LOGIN_RESPOND, // 登录的响应
+
     ENUM_MSG_TYPE_MAX=0x00ffffff, // 消息类型的最大值
 
 };

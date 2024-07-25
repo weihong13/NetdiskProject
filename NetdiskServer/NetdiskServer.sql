@@ -23,3 +23,8 @@ values
 ('shisan','180110');
 
 insert into friend(user_id,friend_id) values(1,2);
+
+select * from user_info where name = 'zhangsan' and pwd = 'zhangsan';
+
+
+update user_info set online = 1 where name = '';

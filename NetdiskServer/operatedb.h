@@ -17,6 +17,12 @@ public:
     // 获取数据库的单例对象
     static OperateDB& getInstance();
 
+    // 处理注册请求
+    bool handleRegist(const char* name,const char* pwd);
+
+    // 处理登录请求
+    bool handleLogin(const char* name,const char* pwd);
+
     // 数据库对象
     QSqlDatabase m_db;
 

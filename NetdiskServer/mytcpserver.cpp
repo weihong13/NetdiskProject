@@ -21,9 +21,8 @@ MyTcpServer &MyTcpServer::getInstance()
 void MyTcpServer::incomingConnection(qintptr handle)
 {
 
-    // 消息对话框，展示连接成功。
-    QMessageBox* msgBox = new QMessageBox;
-    msgBox->information(msgBox,"客户端建立连接","新客户端连接成功");
+    // 展示连接成功。
+    qDebug()<<"新客户端连接成功";
     // 将新连接的客户端socket 存到 m_tcpSocketList 列表中。
     MyTcpSocket* tcpSocket = new MyTcpSocket;
     tcpSocket->setSocketDescriptor(handle);
