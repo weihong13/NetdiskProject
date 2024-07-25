@@ -69,9 +69,7 @@ void Client::loadConfig()
 // 连接成功展示
 void Client::showConnected()
 {
-    // 消息对话框，展示连接成功。
-    QMessageBox* msgBox = new QMessageBox;
-    msgBox->information(this,"建立连接","连接成功");
+    qDebug()<<"已成功连接服务器！";
 }
 
 // 获取网络连接
@@ -111,16 +109,151 @@ void Client::recvMsg()
     // 而剩余需要读出的内容为，消息结构体总长度 减去 消息结构体总长度的数据类型大小
     m_tcpSocket.read((char*)pdu+sizeof(uint),uiPDULen-sizeof(uint));
 
-    // 测试--打印输出消息结构体的内容
-    qDebug()<<"结构体总长度："<<pdu->uiPDULen;
-    qDebug()<<"消息类型："<<pdu->uiMsgType;
-    qDebug()<<"消息长度："<<pdu->uiMsgLen;
-    qDebug()<<"参数1："<<pdu->caData;
-    qDebug()<<"参数2："<<pdu->caData+32;
-    qDebug()<<"接收到的消息："<<pdu->caMsg;
+//    // 测试--打印输出消息结构体的内容
+//    qDebug()<<"recvMsg 结构体总长度："<<pdu->uiPDULen;
+//    qDebug()<<"recvMsg 消息类型："<<pdu->uiMsgType;
+//    qDebug()<<"recvMsg 消息长度："<<pdu->uiMsgLen;
+//    qDebug()<<"recvMsg 参数1："<<pdu->caData;
+//    qDebug()<<"recvMsg 参数2："<<pdu->caData+32;
+//    qDebug()<<"recvMsg 接收到的消息："<<pdu->caMsg;
+
+    // 根据消息类型对消息进行处理
+    switch (pdu->uiMsgType)
+    {
+        // 注册响应
+        case ENUM_MSG_TYPE_REGIST_RESPOND:
+        {
+            // 将消息取出
+            bool ret;
+            memcpy(&ret,pdu->caData,sizeof(bool));
+            // 根据返回的响应进行处理
+            if(ret)
+            {
+                QMessageBox::information(this,"注册","注册成功");
+            }
+            else
+            {
+                QMessageBox::information(this,"注册","注册失败：用户名或密码非法");
+            }
+
+            break;
+        }
+        // 登录响应
+        case ENUM_MSG_TYPE_LOGIN_RESPOND:
+        {
+            // 将消息取出
+            bool ret;
+            memcpy(&ret,pdu->caData,sizeof(bool));
+            // 根据返回的响应进行处理
+            if(ret)
+            {
+                m_userName = ui->userName_LE->text();
+                qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<m_userName;
+                QMessageBox::information(this,"登录","登录成功");
+            }
+            else
+            {
+                QMessageBox::information(this,"登录","登录失败：用户名或密码非法");
+            }
+
+                break;
+            }
+        default:
+            break;
+    }
 
     // 释放pdu
     free(pdu);
     pdu=NULL;
 
+}
+
+// 注册按钮的槽函数
+void Client::on_regist_PB_clicked()
+{
+    // 从ui对象中选取 输入框，并读出内容
+    QString strName =  ui->userName_LE->text();
+    QString strpwd =  ui->pwd_LE->text();
+    // 判空，如果是空，直接返回
+    if(strName.isEmpty()||strpwd.isEmpty()) return;
+    // 检查输入内容长度，根据表的设计，数据长度应该小于32
+    if(strName.toStdString().size()>32||strpwd.toStdString().size()>32)
+    {
+        QMessageBox::critical(this,"输入内容非法","用户名或密码长度应小于32");
+        return;
+    }
+    // 检查密码长度，要求密码必须大于8位
+    if(strpwd.toStdString().size()<8)
+    {
+        QMessageBox::critical(this,"输入内容非法","密码长度应大于8）");
+        return;
+    }
+
+    // 初始化一个 PDU对象
+    PDU* pdu = initPDU(0);
+    // 输入消息类型为，注册请求
+    pdu->uiMsgType = ENUM_MSG_TYPE_REGIST_REQUEST;
+    // 将用户名和密码放入caData中，用户名防止前32位，密码放在后32位。
+    memcpy(pdu->caData,strName.toStdString().c_str(),32);
+    memcpy(pdu->caData+32,strpwd.toStdString().c_str(),32);
+    // 测试--打印检测发送的内容
+    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
+    qDebug()<<"regist strName: "<<pdu->caData;
+    qDebug()<<"regist strpwd: "<<pdu->caData+32;
+
+    // 通过socket将消息发送到服务器
+    m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
+
+    // 释放pdu
+    free(pdu);
+    // 将pdu置为空
+    pdu = NULL;
+
+
+
+
+}
+
+
+
+// 登录按钮的槽函数
+void Client::on_login_PB_clicked()
+{
+    // 从ui对象中选取 输入框，并读出内容
+    QString strName =  ui->userName_LE->text();
+    QString strpwd =  ui->pwd_LE->text();
+    // 判空，如果是空，直接返回
+    if(strName.isEmpty()||strpwd.isEmpty()) return;
+    // 检查输入内容长度，根据表的设计，数据长度应该小于32
+    if(strName.toStdString().size()>32||strpwd.toStdString().size()>32)
+    {
+        QMessageBox::critical(this,"输入内容非法","用户名或密码长度应小于32");
+        return;
+    }
+    // 检查密码长度，要求密码必须大于8位
+    if(strpwd.toStdString().size()<8)
+    {
+        QMessageBox::critical(this,"输入内容非法","密码长度应大于8）");
+        return;
+    }
+
+    // 初始化一个 PDU对象
+    PDU* pdu = initPDU(0);
+    // 输入消息类型为，注册请求
+    pdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_REQUEST;
+    // 将用户名和密码放入caData中，用户名防止前32位，密码放在后32位。
+    memcpy(pdu->caData,strName.toStdString().c_str(),32);
+    memcpy(pdu->caData+32,strpwd.toStdString().c_str(),32);
+    // 测试--打印检测发送的内容
+    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
+    qDebug()<<"regist strName: "<<pdu->caData;
+    qDebug()<<"regist strpwd: "<<pdu->caData+32;
+
+    // 通过socket将消息发送到服务器
+    m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
+
+    // 释放pdu
+    free(pdu);
+    // 将pdu置为空
+    pdu = NULL;
 }

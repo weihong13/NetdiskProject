@@ -34,6 +34,11 @@ public slots:
     // 接收消息
     void recvMsg();
 
+private slots:
+    void on_regist_PB_clicked();
+
+    void on_login_PB_clicked();
+
 private:
     Ui::Client *ui;
     // IP地址
@@ -42,6 +47,8 @@ private:
     quint16 m_uintPort;
     // 设置网络连接
     QTcpSocket m_tcpSocket;
+    // 登陆成功的用户名
+    QString m_userName;
 
 
 
