@@ -143,12 +143,14 @@ void Client::recvMsg()
         {
             // 将消息取出
             bool ret;
+            char caName[32] = {'\0'};
             memcpy(&ret,pdu->caData,sizeof(bool));
+            memcpy(caName,pdu->caData+32,32);
             // 根据返回的响应进行处理
             if(ret)
             {
-                m_userName = ui->userName_LE->text();
-                qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<m_userName;
+                m_LoginName = caName;
+                qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<m_LoginName;
                 QMessageBox::information(this,"登录","登录成功");
             }
             else
@@ -179,13 +181,13 @@ void Client::on_regist_PB_clicked()
     // 检查输入内容长度，根据表的设计，数据长度应该小于32
     if(strName.toStdString().size()>32||strpwd.toStdString().size()>32)
     {
-        QMessageBox::critical(this,"输入内容非法","用户名或密码长度应小于32");
+        QMessageBox::critical(this,"注册","用户名或密码长度应小于32");
         return;
     }
-    // 检查密码长度，要求密码必须大于8位
-    if(strpwd.toStdString().size()<8)
+    // 检查密码长度，要求密码必须大于3位
+    if(strpwd.toStdString().size()<3)
     {
-        QMessageBox::critical(this,"输入内容非法","密码长度应大于8）");
+        QMessageBox::critical(this,"注册","密码长度应大于3）");
         return;
     }
 
@@ -196,10 +198,11 @@ void Client::on_regist_PB_clicked()
     // 将用户名和密码放入caData中，用户名防止前32位，密码放在后32位。
     memcpy(pdu->caData,strName.toStdString().c_str(),32);
     memcpy(pdu->caData+32,strpwd.toStdString().c_str(),32);
-    // 测试--打印检测发送的内容
-    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
-    qDebug()<<"regist strName: "<<pdu->caData;
-    qDebug()<<"regist strpwd: "<<pdu->caData+32;
+
+//    // 测试--打印检测发送的内容
+//    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
+//    qDebug()<<"regist strName: "<<pdu->caData;
+//    qDebug()<<"regist strpwd: "<<pdu->caData+32;
 
     // 通过socket将消息发送到服务器
     m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
@@ -227,13 +230,13 @@ void Client::on_login_PB_clicked()
     // 检查输入内容长度，根据表的设计，数据长度应该小于32
     if(strName.toStdString().size()>32||strpwd.toStdString().size()>32)
     {
-        QMessageBox::critical(this,"输入内容非法","用户名或密码长度应小于32");
+        QMessageBox::critical(this,"登录","用户名或密码长度应小于32");
         return;
     }
-    // 检查密码长度，要求密码必须大于8位
-    if(strpwd.toStdString().size()<8)
+    // 检查密码长度，要求密码必须大于3位
+    if(strpwd.toStdString().size()<3)
     {
-        QMessageBox::critical(this,"输入内容非法","密码长度应大于8）");
+        QMessageBox::critical(this,"登录","密码长度应大于3）");
         return;
     }
 

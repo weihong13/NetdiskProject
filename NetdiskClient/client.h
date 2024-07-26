@@ -48,7 +48,7 @@ private:
     // 设置网络连接
     QTcpSocket m_tcpSocket;
     // 登陆成功的用户名
-    QString m_userName;
+    QString m_LoginName;
 
 
 
