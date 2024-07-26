@@ -92,8 +92,7 @@ bool OperateDB::handleLogin(const char *name, const char *pwd)
     if(!q.exec(sql)||q.next())
     {
         // 用户登录状态改为1
-
-        QString sql = QString("update user_info set online = 1 where name = '%1'").arg(name);
+        QString sql = QString("update user_info set online = 1 where name = '%1' and pwd = '%2'").arg(name).arg(pwd);
         if(q.exec(sql))
         {
             return true;
@@ -110,6 +109,22 @@ bool OperateDB::handleLogin(const char *name, const char *pwd)
         return false;
     }
 
+
+}
+
+// 处理下线的函数
+void OperateDB::handleOffline(const char *name)
+{
+    // 判断参数是否为空指针
+    if(name==NULL)
+    {
+        return;
+    }
+    QString sql = QString("update user_info set online = 0 where name = '%1'").arg(name);
+    // 创建一个 QSqlQuery 对象，用来执行 sql语句
+    QSqlQuery q;
+    // 执行更新语句
+    q.exec(sql);
 
 }
 

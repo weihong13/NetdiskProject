@@ -22,6 +22,8 @@ public:
 
     // 处理登录请求
     bool handleLogin(const char* name,const char* pwd);
+    // 处理下线的函数
+    void handleOffline(const char* name);
 
     // 数据库对象
     QSqlDatabase m_db;

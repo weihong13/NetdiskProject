@@ -13,6 +13,11 @@ public:
     static MyTcpServer& getInstance();
     // 重写连接成功的槽函数
     void incomingConnection(qintptr handle);
+
+public slots:
+    // 删除已下线客户端socket的槽函数
+    void deleteSocket(MyTcpSocket* mytcpsocket);
+
 private:
     // 构造私有化
     MyTcpServer();

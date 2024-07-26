@@ -5,8 +5,13 @@ MyTcpSocket::MyTcpSocket()
 {
     // 将socket中，接收到信息触发的信号，与取出信息的信号槽函数进行关联
     connect(this,&MyTcpSocket::readyRead,this,&MyTcpSocket::recvMsg);
+
+    // 将socket中，接收客户端关闭的信号，与处理下线的槽函数进行关联
+    connect(this,&MyTcpSocket::disconnected,this,&MyTcpSocket::clientOffline);
 }
 
+
+// 接收消息的槽函数
 void MyTcpSocket::recvMsg()
 {
     // 打印socket中的数据长度
@@ -81,7 +86,7 @@ void MyTcpSocket::recvMsg()
             bool ret = OperateDB::getInstance().handleLogin(caName,caPwd);
             if(ret)
             {
-                m_userName = caName;
+                m_LoginName = caName;
             }
             // 向客户端发送响应
             // 初始化响应注册的PDU对象
@@ -90,6 +95,7 @@ void MyTcpSocket::recvMsg()
             loginPdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_RESPOND;
             // 将消息存储到消息结构体
             memcpy(loginPdu->caData,&ret,sizeof(bool));
+            memcpy(loginPdu->caData+32,caName,32);
             // 利用socket 向客户端发送 注册的响应
             write((char*)loginPdu,loginPdu->uiPDULen);
 
@@ -99,9 +105,18 @@ void MyTcpSocket::recvMsg()
         default:
             break;
     }
-
     // 释放pdu
     free(pdu);
     pdu=NULL;
+
+}
+
+// 处理下线的槽函数
+void MyTcpSocket::clientOffline()
+{
+    // 将当前下线客户端的用户名 传给数据库进行下线操作
+    OperateDB::getInstance().handleOffline(m_LoginName.toStdString().c_str());
+    // 发送下线信号,将下线客户端的socket发送给TcpServer
+    emit offline(this);
 
 }
