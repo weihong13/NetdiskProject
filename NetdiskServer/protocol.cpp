@@ -8,7 +8,7 @@ PDU* initPDU(uint uiMsgLen)
 {
     // 计算协议总长度
     uint uiPDULen = sizeof (PDU)+uiMsgLen;
-    // 申请堆区内存
+    // 给柔性数组申请堆区内存
     PDU* pdu = (PDU*)malloc(uiPDULen);
     // 未申请到空间，退出
     if(pdu == NULL)

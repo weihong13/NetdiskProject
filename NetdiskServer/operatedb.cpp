@@ -43,6 +43,8 @@ void OperateDB::connect()
 // 获取数据库的单例对象
 OperateDB& OperateDB::getInstance()
 {
+    // 返回静态局部引用对象，防止调用拷贝构造，静态变量只能赋值一次
+    // 在C++11之后，默认支持线程安全
     static OperateDB instance;
     return instance;
 }
@@ -73,6 +75,7 @@ bool OperateDB::handleRegist(const char* name, const char* pwd)
     return q.exec(sql);
 }
 
+// 处理登录的函数
 bool OperateDB::handleLogin(const char *name, const char *pwd)
 {
     // 判断参数是否为空指针
@@ -126,6 +129,32 @@ void OperateDB::handleOffline(const char *name)
     // 执行更新语句
     q.exec(sql);
 
+}
+
+// 处理查找用户的函数
+int OperateDB::handleFindUser(const char *name)
+{
+    if(name==NULL)
+    {
+        return -2; // 空指针 返回-2
+    }
+    // 判断用户是否存在，输出在线状态
+    QString sql = QString("select online from user_info where name = '%1'").arg(name);
+    // 创建一个 QSqlQuery 对象，用来执行 sql语句
+    QSqlQuery q;
+    if(!q.exec(sql))
+    {
+        return -2; // 执行错误，返回-2
+    }
+    if(q.next())
+    {   //查找到内容，返回在线状态，需要获取的值为字符串类型，得转换为整型
+        return q.value(0).toInt();
+    }
+    else
+    {
+        // 没查到内容，用户不存在
+        return -1; // 用户不存在
+    }
 }
 
 

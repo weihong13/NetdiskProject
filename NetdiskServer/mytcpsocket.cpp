@@ -102,6 +102,30 @@ void MyTcpSocket::recvMsg()
             break;
         }
 
+        // 查找用户请求
+        case ENUM_MSG_TYPE_FIND_USER_REQUEST:
+        {
+            // 将消息取出
+            char caName[32] = {'\0'};
+            memcpy(caName,pdu->caData,32);
+            // 测试
+            qDebug()<<"recvMsg FIND_USER caName: "<<caName;
+
+            // 处理消息
+            int ret = OperateDB::getInstance().handleFindUser(caName);
+            // 向客户端发送响应
+            // 初始化响应注册的PDU对象
+            PDU* findUserPdu = initPDU(0);
+            // 消息类型为注册响应
+            findUserPdu->uiMsgType = ENUM_MSG_TYPE_FIND_USER_RESPOND;
+            // 将消息存储到消息结构体
+            memcpy(findUserPdu->caData,&ret,sizeof(int));
+            // 利用socket 向客户端发送 注册的响应
+            write((char*)findUserPdu,findUserPdu->uiPDULen);
+
+            break;
+        }
+
         default:
             break;
     }
