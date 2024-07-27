@@ -9,18 +9,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>875</width>
-    <height>582</height>
+    <width>794</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <item row="0" column="0">
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
        <item>
         <widget class="QPushButton" name="friend_PB">
          <property name="sizePolicy">
@@ -44,6 +53,10 @@
          <property name="toolTipDuration">
           <number>-1</number>
          </property>
+         <property name="styleSheet">
+          <string notr="true">border:none;padding:25px;
+background-color: rgb(255, 255, 255);</string>
+         </property>
          <property name="text">
           <string>好
 友</string>
@@ -63,6 +76,9 @@
            <family>Agency FB</family>
            <pointsize>20</pointsize>
           </font>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">border:none;padding:25px;</string>
          </property>
          <property name="text">
           <string>文

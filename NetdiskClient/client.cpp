@@ -1,5 +1,6 @@
 #include "client.h"
 #include "ui_client.h"
+#include "index.h"
 
 #include <QFile>
 #include <QMessageBox>
@@ -78,6 +79,11 @@ QTcpSocket& Client::getTcpSocket()
     return m_tcpSocket;
 }
 
+QString &Client::getLoginName()
+{
+    return m_LoginName;
+}
+
 // 实现静态成员函数 获取单例对象
 Client &Client::getInstance()
 {
@@ -135,9 +141,9 @@ void Client::recvMsg()
             {
                 QMessageBox::information(this,"注册","注册失败：用户名或密码非法");
             }
-
             break;
         }
+
         // 登录响应
         case ENUM_MSG_TYPE_LOGIN_RESPOND:
         {
@@ -152,14 +158,48 @@ void Client::recvMsg()
                 m_LoginName = caName;
                 qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<m_LoginName;
                 QMessageBox::information(this,"登录","登录成功");
+                // 登录成功后，跳转到首页
+                Index::getInstance().show();
+                // 隐藏登录界面
+                hide();
             }
             else
             {
                 QMessageBox::information(this,"登录","登录失败：用户名或密码非法");
             }
+            break;
+        }
 
-                break;
+        // 查找用户响应
+        case ENUM_MSG_TYPE_FIND_USER_RESPOND:
+        {
+            // 将消息取出
+            int ret;
+            memcpy(&ret,pdu->caData,sizeof(int));
+            // 根据返回的响应进行处理
+            if(ret == -1)
+            {
+                QMessageBox::information(&Index::getInstance(),"查找用户","该用户不存在");
+                return;
             }
+            else if(ret == 0)
+            {
+                QMessageBox::information(&Index::getInstance(),"查找用户","该用户不在线");
+                return;
+            }
+            else if(ret == 1)
+            {
+                QMessageBox::information(&Index::getInstance(),"查找用户","该用户在线");
+                return;
+            }
+            else
+            {
+                QMessageBox::critical(&Index::getInstance(),"查找用户","查找错误");
+                return;
+            }
+            break;
+        }
+
         default:
             break;
     }
@@ -173,7 +213,7 @@ void Client::recvMsg()
 // 注册按钮的槽函数
 void Client::on_regist_PB_clicked()
 {
-    // 从ui对象中选取 输入框，并读出内容
+    // 从ui对象中选取用户名和密码的输入框，并读出内容
     QString strName =  ui->userName_LE->text();
     QString strpwd =  ui->pwd_LE->text();
     // 判空，如果是空，直接返回

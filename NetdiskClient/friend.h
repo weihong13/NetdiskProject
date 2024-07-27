@@ -15,6 +15,9 @@ public:
     explicit Friend(QWidget *parent = nullptr);
     ~Friend();
 
+private slots:
+    void on_findUser_PB_clicked();
+
 private:
     Ui::Friend *ui;
 };

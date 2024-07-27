@@ -24,6 +24,9 @@ public:
     void showConnected();
     // 获取网络连接
     QTcpSocket& getTcpSocket();
+    // 获取当前登录的用户名
+    QString& getLoginName();
+
     // 定义静态成员函数 获取单例对象
     static Client& getInstance();
 
