@@ -146,8 +146,11 @@ int OperateDB::handleFindUser(const char *name)
     {
         return -2; // 执行错误，返回-2
     }
+    // q.next() 取到结果集的一条数据
     if(q.next())
-    {   //查找到内容，返回在线状态，需要获取的值为字符串类型，得转换为整型
+    {
+        // 返回一条数据，可能有多个字段，需要传入一个数，选取第几个字段
+        //查找到内容，返回在线状态，需要获取的值为字符串类型，得转换为整型
         return q.value(0).toInt();
     }
     else
@@ -155,6 +158,27 @@ int OperateDB::handleFindUser(const char *name)
         // 没查到内容，用户不存在
         return -1; // 用户不存在
     }
+}
+
+ // 处理在线用户的函数
+QStringList OperateDB::handleOnlineUser()
+{
+    // 判断用户是否在线，输出用户名
+    QString sql = QString("select name from user_info where online = 1");
+    // 创建一个 QSqlQuery 对象，用来执行 sql语句
+    QSqlQuery q;
+    q.exec(sql);
+
+    QStringList nameList;
+    while(q.next())
+    {
+        // 测试--打印从数据库取到的每一条用户名
+        // qDebug()<<"handleOnlineUser "<<q.value(0).toString();
+        // 将在线的用户名添加到列表中
+        nameList.append(q.value(0).toString());
+    }
+    return nameList;
+
 }
 
 

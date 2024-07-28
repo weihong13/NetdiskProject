@@ -67,7 +67,9 @@ void MyTcpSocket::recvMsg()
             memcpy(registPdu->caData,&ret,sizeof(bool));
             // 利用socket 向客户端发送 注册的响应
             write((char*)registPdu,registPdu->uiPDULen);
-
+            // 释放 registPdu
+            free(registPdu);
+            registPdu=NULL;
             break;
         }
         // 登录请求
@@ -89,15 +91,19 @@ void MyTcpSocket::recvMsg()
                 m_LoginName = caName;
             }
             // 向客户端发送响应
-            // 初始化响应注册的PDU对象
+            // 初始化响应登录的PDU对象
             PDU* loginPdu = initPDU(0);
             // 消息类型为注册响应
             loginPdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_RESPOND;
             // 将消息存储到消息结构体
             memcpy(loginPdu->caData,&ret,sizeof(bool));
             memcpy(loginPdu->caData+32,caName,32);
-            // 利用socket 向客户端发送 注册的响应
+            // 利用socket 向客户端发送 登录的响应
             write((char*)loginPdu,loginPdu->uiPDULen);
+
+            // 释放 loginPdu
+            free(loginPdu);
+            loginPdu=NULL;
 
             break;
         }
@@ -114,15 +120,54 @@ void MyTcpSocket::recvMsg()
             // 处理消息
             int ret = OperateDB::getInstance().handleFindUser(caName);
             // 向客户端发送响应
-            // 初始化响应注册的PDU对象
+            // 初始化响应查找用户的PDU对象
             PDU* findUserPdu = initPDU(0);
-            // 消息类型为注册响应
+            // 消息类型为查找用户响应
             findUserPdu->uiMsgType = ENUM_MSG_TYPE_FIND_USER_RESPOND;
             // 将消息存储到消息结构体
             memcpy(findUserPdu->caData,&ret,sizeof(int));
-            // 利用socket 向客户端发送 注册的响应
+            // 利用socket 向客户端发送 查找用户的响应
             write((char*)findUserPdu,findUserPdu->uiPDULen);
 
+            // 释放 findUserPdu
+            free(findUserPdu);
+            findUserPdu=NULL;
+            break;
+        }
+
+        // 在线用户请求
+        case ENUM_MSG_TYPE_ONLINE_USER_REQUEST:
+        {
+            // 处理消息
+            QStringList nameList = OperateDB::getInstance().handleOnlineUser();
+
+            // 获取列表大小
+            int listSize = nameList.size();
+            uint uiMsgLen = listSize*32;
+
+            // 向客户端发送响应
+            // 初始化响应在线用户的PDU对象
+            PDU* onlineUserPdu = initPDU(uiMsgLen);
+            // 消息类型为在线用户响应
+            onlineUserPdu->uiMsgType = ENUM_MSG_TYPE_ONLINE_USER_RESPOND;
+
+
+            // 将用户名 挨个放到 caMsg中
+            for(int i = 0; i<listSize; i++)
+            {
+                // 测试
+                // qDebug()<<"ONLINE_USER_REQUEST " << nameList.at(i);
+
+                // 将每一个用户名都存储到 caMsg中
+                memcpy(onlineUserPdu->caMsg+i*32,nameList.at(i).toStdString().c_str(),32);
+            }
+
+            // 利用socket 向客户端发送 在线用户的响应
+            write((char*)onlineUserPdu,onlineUserPdu->uiPDULen);
+
+            // 释放 onlineUserPdu
+            free(onlineUserPdu);
+            onlineUserPdu=NULL;
             break;
         }
 

@@ -26,6 +26,8 @@ public:
     void handleOffline(const char* name);
     // 处理查找用户的函数
     int handleFindUser(const char* name);
+    // 处理在线用户的函数
+    QStringList handleOnlineUser();
 
     // 数据库对象
     QSqlDatabase m_db;
