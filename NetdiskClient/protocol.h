@@ -19,6 +19,10 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_FIND_USER_REQUEST, // 查找用户的请求
     ENUM_MSG_TYPE_FIND_USER_RESPOND, // 查找用户的响应
 
+    ENUM_MSG_TYPE_ONLINE_USER_REQUEST, // 在线用户的请求
+    ENUM_MSG_TYPE_ONLINE_USER_RESPOND, // 在线用户的响应
+
+
     ENUM_MSG_TYPE_MAX=0x00ffffff, // 消息类型的最大值
 
 };

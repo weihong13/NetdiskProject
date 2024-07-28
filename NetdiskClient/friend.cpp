@@ -12,10 +12,13 @@ Friend::Friend(QWidget *parent) :
     ui(new Ui::Friend)
 {
     ui->setupUi(this);
+    // 新建一个 OnlineUser 对象，用于展示在线用户的界面
+    m_onlineUser = new OnlineUser;
 }
 
 Friend::~Friend()
 {
+    if(!m_onlineUser) delete m_onlineUser;
     delete ui;
 }
 
@@ -52,4 +55,21 @@ void Friend::on_findUser_PB_clicked()
     // 释放pdu
     free(pdu);
     pdu = NULL;
+}
+
+void Friend::on_onlineUser_PB_clicked()
+{
+    // 如果该界面是隐藏的，则进行展示
+    if(m_onlineUser->isHidden())
+    {
+       m_onlineUser->show();
+
+       PDU* pdu = initPDU(0);
+       pdu->uiMsgType = ENUM_MSG_TYPE_ONLINE_USER_REQUEST;
+       Client::getInstance().getTcpSocket().write((char*)pdu,pdu->uiPDULen);
+
+       free(pdu);
+       pdu = NULL;
+
+    }
 }

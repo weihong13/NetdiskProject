@@ -119,9 +119,9 @@ void Client::recvMsg()
 //    qDebug()<<"recvMsg 结构体总长度："<<pdu->uiPDULen;
 //    qDebug()<<"recvMsg 消息类型："<<pdu->uiMsgType;
 //    qDebug()<<"recvMsg 消息长度："<<pdu->uiMsgLen;
-//    qDebug()<<"recvMsg 参数1："<<pdu->caData;
-//    qDebug()<<"recvMsg 参数2："<<pdu->caData+32;
-//    qDebug()<<"recvMsg 接收到的消息："<<pdu->caMsg;
+    qDebug()<<"recvMsg 参数1："<<pdu->caData;
+    qDebug()<<"recvMsg 参数2："<<pdu->caData+32;
+    qDebug()<<"recvMsg 接收到的消息："<<pdu->caMsg;
 
     // 根据消息类型对消息进行处理
     switch (pdu->uiMsgType)
@@ -197,6 +197,35 @@ void Client::recvMsg()
                 QMessageBox::critical(&Index::getInstance(),"查找用户","查找错误");
                 return;
             }
+            break;
+        }
+
+        // 在线用户响应
+        case ENUM_MSG_TYPE_ONLINE_USER_RESPOND:
+        {
+            // 获取在线用户的个数
+            uint listSize = pdu->uiMsgLen/32;
+            qDebug()<<"listSize  "<<listSize;
+            // 创建变量存储在线用户的用户名
+            char userName[32];
+            QStringList nameList;
+            // 将caMsg中的用户名挨个取出，并放到nameList中
+            for(uint i = 0; i <listSize; i++)
+            {
+                // 挨个取出用户名
+                memcpy(userName,pdu->caMsg+i*32,32);
+                // 测试
+                // qDebug()<<"ONLINE_USER_RESPOND  "<<QString(userName);
+                // 跳过自己
+                if(QString(userName) == m_LoginName)
+                {
+                    continue;
+                }
+                // 将取到的用户名存放到 nameList中
+                nameList.append(QString(userName));
+            }
+            // 调用展示在线用户的函数
+            Index::getInstance().getFriend()->m_onlineUser->showOnlineUser(nameList);
             break;
         }
 
