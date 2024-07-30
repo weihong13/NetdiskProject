@@ -21,6 +21,7 @@ SOURCES += \
     mytcpsocket.cpp \
     operatedb.cpp \
     protocol.cpp \
+    reqhandler.cpp \
     server.cpp
 
 HEADERS += \
@@ -28,6 +29,7 @@ HEADERS += \
     mytcpsocket.h \
     operatedb.h \
     protocol.h \
+    reqhandler.h \
     server.h
 
 FORMS += \

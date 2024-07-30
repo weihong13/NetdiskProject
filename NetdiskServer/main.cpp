@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
     Server w;
     // w.show();
 
-    // 通过创建的实例，调用connect函数，连接数据库
+    // 创建操作数据库的实例，调用connect函数，连接数据库
     OperateDB::getInstance().connect();
 
     return a.exec();

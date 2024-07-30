@@ -88,30 +88,28 @@ bool OperateDB::handleLogin(const char *name, const char *pwd)
     // 创建一个 QSqlQuery 对象，用来执行 sql语句
     QSqlQuery q;
 
-    // 执行失败，返回false
-    if(!q.exec(sql)) return false;
     // q.exec(sql)执行语句，返回值为是否成功，如果成功了，就去执行q.next()
-    // q.next() 是挨个取出 执行成后的每一条结果，如果取到结果了，说明该用户名是存在的,密码也正确
-    if(!q.exec(sql)||q.next())
+    // q.next() 如果取到结果了，说明该用户名是存在的,密码也正确
+    if(q.exec(sql)&&q.next())
     {
         // 用户登录状态改为1
         QString sql = QString("update user_info set online = 1 where name = '%1' and pwd = '%2'").arg(name).arg(pwd);
         if(q.exec(sql))
         {
+            // 修改成功，返回真
             return true;
         }
         else
-        {
+        {   // 修改失败，返回错误
             return false;
         }
 
 
     }
     else
-    {
+    {   // 执行失败，或没取到结果，返回错误
         return false;
     }
-
 
 }
 
@@ -128,7 +126,6 @@ void OperateDB::handleOffline(const char *name)
     QSqlQuery q;
     // 执行更新语句
     q.exec(sql);
-
 }
 
 // 处理查找用户的函数

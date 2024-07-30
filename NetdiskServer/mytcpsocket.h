@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QTcpSocket>
 #include "protocol.h"
+#include "reqhandler.h"
 
 
 class MyTcpSocket:public QTcpSocket
@@ -11,7 +12,18 @@ class MyTcpSocket:public QTcpSocket
     Q_OBJECT
 public:
     MyTcpSocket();
+    ~MyTcpSocket();
+    // 读出PDU
+    PDU* readPDU();
+    // 处理请求
+    PDU* handleReq(PDU* pdu);
 
+    // 发送PDU
+    void sendPDU(PDU* pdu);
+
+
+    // 请求处理器
+    ReqHandler* m_rh;
     // 登陆成功的用户名
     QString m_LoginName;
 
