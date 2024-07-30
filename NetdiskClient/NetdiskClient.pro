@@ -22,7 +22,8 @@ SOURCES += \
     main.cpp \
     client.cpp \
     onlineuser.cpp \
-    protocol.cpp
+    protocol.cpp \
+    reshandler.cpp
 
 HEADERS += \
     client.h \
@@ -30,7 +31,8 @@ HEADERS += \
     friend.h \
     index.h \
     onlineuser.h \
-    protocol.h
+    protocol.h \
+    reshandler.h
 
 FORMS += \
     client.ui \

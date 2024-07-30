@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QLineEdit>
 #include "protocol.h"
+#include "reshandler.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Client; }
@@ -26,6 +27,11 @@ public:
     QTcpSocket& getTcpSocket();
     // 获取当前登录的用户名
     QString& getLoginName();
+
+    // 读出PDU
+    PDU* readPDU();
+    // 处理响应
+    void handleRes(PDU* pdu);
 
     // 定义静态成员函数 获取单例对象
     static Client& getInstance();
@@ -52,6 +58,8 @@ private:
     QTcpSocket m_tcpSocket;
     // 登陆成功的用户名
     QString m_LoginName;
+    // 响应处理器
+    ResHandler* m_rh;
 
 
 

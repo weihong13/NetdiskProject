@@ -13,6 +13,8 @@ Client::Client(QWidget *parent)
     , ui(new Ui::Client)
 {
     ui->setupUi(this);
+    // 创建一个 响应处理器对象
+    m_rh = new ResHandler;
     // 加载配置文件
     loadConfig();
 
@@ -27,9 +29,10 @@ Client::Client(QWidget *parent)
     connect(&m_tcpSocket,&QTcpSocket::readyRead,this,&Client::recvMsg);
 }
 
-
+// 析构
 Client::~Client()
 {
+    if(!m_rh) delete m_rh;
     delete ui;
 }
 
@@ -84,6 +87,8 @@ QString &Client::getLoginName()
     return m_LoginName;
 }
 
+
+
 // 实现静态成员函数 获取单例对象
 Client &Client::getInstance()
 {
@@ -92,13 +97,11 @@ Client &Client::getInstance()
     static Client instance;
     return instance;
 }
-
-
-// 接收消息
-void Client::recvMsg()
+// 读出PDU
+PDU *Client::readPDU()
 {
     // 打印socket中的数据长度
-    qDebug()<<"socket中接收到的数据长度："<<m_tcpSocket.bytesAvailable();
+    qDebug()<<"readPDU socket中接收到的数据长度："<<m_tcpSocket.bytesAvailable();
 
     // 读出消息结构体的总长度，这部分内容会从socket中读出去
     uint uiPDULen = 0; // 传出参数
@@ -116,127 +119,64 @@ void Client::recvMsg()
     m_tcpSocket.read((char*)pdu+sizeof(uint),uiPDULen-sizeof(uint));
 
 //    // 测试--打印输出消息结构体的内容
-//    qDebug()<<"recvMsg 结构体总长度："<<pdu->uiPDULen;
-//    qDebug()<<"recvMsg 消息类型："<<pdu->uiMsgType;
-//    qDebug()<<"recvMsg 消息长度："<<pdu->uiMsgLen;
-    qDebug()<<"recvMsg 参数1："<<pdu->caData;
-    qDebug()<<"recvMsg 参数2："<<pdu->caData+32;
-    qDebug()<<"recvMsg 接收到的消息："<<pdu->caMsg;
+//    qDebug()<<"readPDU 结构体总长度："<<pdu->uiPDULen;
+//    qDebug()<<"readPDU 消息类型："<<pdu->uiMsgType;
+//    qDebug()<<"readPDU 消息长度："<<pdu->uiMsgLen;
+    qDebug()<<"readPDU 参数1："<<pdu->caData;
+    qDebug()<<"readPDU 参数2："<<pdu->caData+32;
+    qDebug()<<"readPDU 接收到的消息："<<pdu->caMsg;
 
+    return pdu;
+}
+
+// 处理响应
+void Client::handleRes(PDU *pdu)
+{
+    m_rh->m_pdu = pdu;
     // 根据消息类型对消息进行处理
     switch (pdu->uiMsgType)
     {
         // 注册响应
         case ENUM_MSG_TYPE_REGIST_RESPOND:
         {
-            // 将消息取出
-            bool ret;
-            memcpy(&ret,pdu->caData,sizeof(bool));
-            // 根据返回的响应进行处理
-            if(ret)
-            {
-                QMessageBox::information(this,"注册","注册成功");
-            }
-            else
-            {
-                QMessageBox::information(this,"注册","注册失败：用户名或密码非法");
-            }
+            m_rh->regist();
             break;
         }
 
         // 登录响应
         case ENUM_MSG_TYPE_LOGIN_RESPOND:
         {
-            // 将消息取出
-            bool ret;
-            char caName[32] = {'\0'};
-            memcpy(&ret,pdu->caData,sizeof(bool));
-            memcpy(caName,pdu->caData+32,32);
-            // 根据返回的响应进行处理
-            if(ret)
-            {
-                m_LoginName = caName;
-                qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<m_LoginName;
-                QMessageBox::information(this,"登录","登录成功");
-                // 登录成功后，跳转到首页
-                Index::getInstance().show();
-                // 隐藏登录界面
-                hide();
-            }
-            else
-            {
-                QMessageBox::information(this,"登录","登录失败：用户名或密码非法");
-            }
+            m_rh->login(m_LoginName);
             break;
         }
 
         // 查找用户响应
         case ENUM_MSG_TYPE_FIND_USER_RESPOND:
         {
-            // 将消息取出
-            int ret;
-            memcpy(&ret,pdu->caData,sizeof(int));
-            // 根据返回的响应进行处理
-            if(ret == -1)
-            {
-                QMessageBox::information(&Index::getInstance(),"查找用户","该用户不存在");
-                return;
-            }
-            else if(ret == 0)
-            {
-                QMessageBox::information(&Index::getInstance(),"查找用户","该用户不在线");
-                return;
-            }
-            else if(ret == 1)
-            {
-                QMessageBox::information(&Index::getInstance(),"查找用户","该用户在线");
-                return;
-            }
-            else
-            {
-                QMessageBox::critical(&Index::getInstance(),"查找用户","查找错误");
-                return;
-            }
+            m_rh->findUser();
             break;
         }
 
         // 在线用户响应
         case ENUM_MSG_TYPE_ONLINE_USER_RESPOND:
         {
-            // 获取在线用户的个数
-            uint listSize = pdu->uiMsgLen/32;
-            qDebug()<<"listSize  "<<listSize;
-            // 创建变量存储在线用户的用户名
-            char userName[32];
-            QStringList nameList;
-            // 将caMsg中的用户名挨个取出，并放到nameList中
-            for(uint i = 0; i <listSize; i++)
-            {
-                // 挨个取出用户名
-                memcpy(userName,pdu->caMsg+i*32,32);
-                // 测试
-                // qDebug()<<"ONLINE_USER_RESPOND  "<<QString(userName);
-                // 跳过自己
-                if(QString(userName) == m_LoginName)
-                {
-                    continue;
-                }
-                // 将取到的用户名存放到 nameList中
-                nameList.append(QString(userName));
-            }
-            // 调用展示在线用户的函数
-            Index::getInstance().getFriend()->m_onlineUser->showOnlineUser(nameList);
+            m_rh->onlineUser(m_LoginName);
             break;
         }
 
         default:
             break;
     }
+}
 
+// 接收消息
+void Client::recvMsg()
+{
+    PDU* pdu = readPDU();
+    handleRes(pdu);
     // 释放pdu
     free(pdu);
     pdu=NULL;
-
 }
 
 // 注册按钮的槽函数
@@ -311,15 +251,15 @@ void Client::on_login_PB_clicked()
 
     // 初始化一个 PDU对象
     PDU* pdu = initPDU(0);
-    // 输入消息类型为，注册请求
+    // 输入消息类型为，登录请求
     pdu->uiMsgType = ENUM_MSG_TYPE_LOGIN_REQUEST;
     // 将用户名和密码放入caData中，用户名防止前32位，密码放在后32位。
     memcpy(pdu->caData,strName.toStdString().c_str(),32);
     memcpy(pdu->caData+32,strpwd.toStdString().c_str(),32);
     // 测试--打印检测发送的内容
-    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
-    qDebug()<<"regist strName: "<<pdu->caData;
-    qDebug()<<"regist strpwd: "<<pdu->caData+32;
+    qDebug()<<"login uiMsgType: "<<pdu->uiMsgType;
+    qDebug()<<"login strName: "<<pdu->caData;
+    qDebug()<<"login strpwd: "<<pdu->caData+32;
 
     // 通过socket将消息发送到服务器
     m_tcpSocket.write((char*)pdu,pdu->uiPDULen);

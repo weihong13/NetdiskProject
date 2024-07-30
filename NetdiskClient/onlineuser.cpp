@@ -6,6 +6,8 @@ OnlineUser::OnlineUser(QWidget *parent) :
     ui(new Ui::OnlineUser)
 {
     ui->setupUi(this);
+    // 主窗口关闭，在线用户窗口也会跟着关闭
+    setAttribute(Qt::WA_QuitOnClose,false);
 }
 
 OnlineUser::~OnlineUser()
