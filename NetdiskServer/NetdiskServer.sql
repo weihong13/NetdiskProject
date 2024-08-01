@@ -1,5 +1,4 @@
-﻿
-create database if not exists NetdiskServer;
+﻿create database if not exists NetdiskServer;
 
 create table if not exists user_info(
   id int primary key auto_increment,
@@ -28,3 +27,40 @@ select * from user_info where name = 'zhangsan' and pwd = 'zhangsan';
 
 
 update user_info set online = 1 where name = '';
+
+select * from friend
+where 
+(
+  user_id =(select id from user_info where name='%1')
+  and
+  friend_id =(select id from user_info where name='%2')
+)
+or
+(  
+  friend_id=(select id from user_info where name='%l')
+  and
+  user_id =(select id from user_info where name='%2')
+)
+
+
+insert into friend(user_id,friend_id)
+select u1.id,u2.id from user_info u1,user_info u2 where u1.name = '%1' and u2.name = '%2';
+
+insert into friend(user_id,friend_id) values(7,8);
+
+
+
+select name from user_info
+where id in
+(
+select user_id from friend where friend_id = (select id from user_info where name = 'aaaa')
+union
+select friend_id from friend where user_id = (select id from user_info where name = 'aaaa')
+) and online =1
+
+
+
+
+
+
+

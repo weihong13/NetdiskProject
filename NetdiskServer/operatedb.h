@@ -35,6 +35,9 @@ public:
     // 建立好友关系
     void handleAddFriendAgree(const char *curName,const char* tarName);
 
+    // 刷新好友
+    QStringList handleFlushFriend(const QString& name);
+
     // 数据库对象
     QSqlDatabase m_db;
 

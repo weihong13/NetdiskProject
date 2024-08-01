@@ -25,6 +25,9 @@ public:
     // 处理同意添加好友请求
     void addFriendAgree();
 
+    // 刷新好友列表请求
+    PDU* flushFriend(QString& name);
+
     PDU* m_pdu;
 
 

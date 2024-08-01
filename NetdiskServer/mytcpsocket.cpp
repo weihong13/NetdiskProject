@@ -18,6 +18,11 @@ MyTcpSocket::~MyTcpSocket()
     if(!m_rh) delete m_rh;
 }
 
+QString &MyTcpSocket::getLoginName()
+{
+    return m_LoginName;
+}
+
 PDU *MyTcpSocket::readPDU()
 {
     // 打印socket中的数据长度
@@ -87,6 +92,14 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             m_rh->addFriendAgree();
         }
+
+        // 刷新好友请求
+        case ENUM_MSG_TYPE_FLUSH_FRIEND_REQUEST:
+        {
+            return m_rh->flushFriend(m_LoginName);
+        }
+
+
         default:
             break;
     }

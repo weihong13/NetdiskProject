@@ -195,3 +195,32 @@ void ReqHandler::addFriendAgree()
         MyTcpServer::getInstance().resend(curName,m_pdu);
     }
 }
+// 刷新好友列表请求
+PDU *ReqHandler::flushFriend(QString& name)
+{
+    // 处理消息
+    QStringList friendList = OperateDB::getInstance().handleFlushFriend(name);
+
+    // 获取好友列表大小
+    int listSize = friendList.size();
+    uint uiMsgLen = listSize*32;
+
+    // 向客户端发送响应
+    // 初始化响应刷新好友的PDU对象
+    PDU* flushFriendPdu = initPDU(uiMsgLen);
+    // 消息类型为刷新好友的响应
+    flushFriendPdu->uiMsgType = ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND;
+
+
+    // 将用户名 挨个放到 caMsg中
+    for(int i = 0; i<listSize; i++)
+    {
+        // 测试
+        qDebug()<<"ReqHandler  flushFriend " << friendList.at(i);
+
+        // 将每一个用户名都存储到 caMsg中
+        memcpy(flushFriendPdu->caMsg+i*32,friendList.at(i).toStdString().c_str(),32);
+    }
+
+    return flushFriendPdu;
+}

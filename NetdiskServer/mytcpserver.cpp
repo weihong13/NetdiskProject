@@ -39,7 +39,7 @@ void MyTcpServer::resend(char *tarName, PDU *pdu)
     // 在 m_tcpSocketList 列表中，查找要转发的目标用户
     foreach(MyTcpSocket* tcpSocket, m_tcpSocketList)
     {
-        if(tcpSocket->m_LoginName == tarName)
+        if(tcpSocket->getLoginName() == tarName)
         {
             tcpSocket->write((char*)pdu,pdu->uiPDULen);
             return;
@@ -64,7 +64,7 @@ void MyTcpServer::deleteSocket(MyTcpSocket *mytcpsocket)
 
     for(int i= 0;i<m_tcpSocketList.size();i++)
     {
-        qDebug()<<"m_LoginName: "<<m_tcpSocketList[i]->m_LoginName;
+        qDebug()<<"m_LoginName: "<<m_tcpSocketList[i]->getLoginName();
     }
 
 }

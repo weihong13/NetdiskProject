@@ -197,7 +197,7 @@ int OperateDB::handleAddFriend(const char *curName,const char *tarName)
                           )
                           or
                           (
-                            friend_id=(select id from user_info where name='%l')
+                            friend_id =(select id from user_info where name='%l')
                             and
                             user_id =(select id from user_info where name='%2')
                           )
@@ -244,16 +244,38 @@ void OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
 
     QSqlQuery q;
     q.exec(sql);
-    // 双向添加
-    sql = QString(R"(
-                          insert into friend(user_id,friend_id)
-                          select u1.id,u2.id
-                          from user_info u1,user_info u2
-                          where u1.name = '%1' and u2.name = '%2')"
-                          ).arg(tarName).arg(curName);
+
+    qDebug()<<"handleAddFriendAgree return";
+}
+
+// 刷新好友，返回好友列表
+QStringList OperateDB::handleFlushFriend(const QString& name)
+{
+    QStringList friendList;
+    if(name == NULL)
+    {
+        return friendList;
+    }
+    // 查找当前用户的好友
+    QString sql = QString(R"(
+                  select name from user_info
+                  where id in
+                  (
+                  select user_id from friend where friend_id = (select id from user_info where name = 'aaaa')
+                  union
+                  select friend_id from friend where user_id = (select id from user_info where name = 'aaaa')
+                  )
+                  )"
+                  ).arg(name);
+    QSqlQuery q;
 
     q.exec(sql);
-    qDebug()<<"handleAddFriendAgree return";
+    // 将好友的用户名添加到列表中
+    while(q.next())
+    {
+        friendList.append(q.value(0).toString());
+    }
+    return friendList;
 }
 
 
