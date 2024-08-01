@@ -2,6 +2,7 @@
 #define ONLINEUSER_H
 
 #include <QWidget>
+#include <QListWidgetItem>
 
 namespace Ui {
 class OnlineUser;
@@ -18,6 +19,10 @@ public:
     // 展示在线用户
     void showOnlineUser(QStringList nameList);
 
+
+private slots:
+    // 双击在线用户列表，申请添加好友
+    void on_onlineUser_LW_itemDoubleClicked(QListWidgetItem *item);
 
 private:
     Ui::OnlineUser *ui;

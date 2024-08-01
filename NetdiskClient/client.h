@@ -30,6 +30,10 @@ public:
 
     // 读出PDU
     PDU* readPDU();
+    // 发送PDU
+    void sendPDU(PDU* pdu);
+
+
     // 处理响应
     void handleRes(PDU* pdu);
 

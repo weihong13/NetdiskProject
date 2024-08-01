@@ -49,12 +49,9 @@ void Friend::on_findUser_PB_clicked()
     // 存放用户名
     memcpy(pdu->caData,strName.toStdString().c_str(),strName.toStdString().size());
 
-    // 发送消息，应该是socket对象调用write函数
-    Client::getInstance().getTcpSocket().write((char*)pdu,pdu->uiPDULen);
+    // 发送消息
+    Client::getInstance().sendPDU(pdu);
 
-    // 释放pdu
-    free(pdu);
-    pdu = NULL;
 }
 
 void Friend::on_onlineUser_PB_clicked()
@@ -66,10 +63,7 @@ void Friend::on_onlineUser_PB_clicked()
 
        PDU* pdu = initPDU(0);
        pdu->uiMsgType = ENUM_MSG_TYPE_ONLINE_USER_REQUEST;
-       Client::getInstance().getTcpSocket().write((char*)pdu,pdu->uiPDULen);
-
-       free(pdu);
-       pdu = NULL;
-
+       // 发送消息
+       Client::getInstance().sendPDU(pdu);
     }
 }

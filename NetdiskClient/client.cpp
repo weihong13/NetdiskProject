@@ -129,6 +129,16 @@ PDU *Client::readPDU()
     return pdu;
 }
 
+void Client::sendPDU(PDU *pdu)
+{
+    qDebug()<<"sendPDU";
+    // 利用socket 向客户端发送 注册的响应
+    m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
+    // 释放 pdu
+    free(pdu);
+    pdu=NULL;
+}
+
 // 处理响应
 void Client::handleRes(PDU *pdu)
 {
@@ -163,6 +173,24 @@ void Client::handleRes(PDU *pdu)
             m_rh->onlineUser(m_LoginName);
             break;
         }
+        // 添加用户响应
+        case ENUM_MSG_TYPE_ADD_FRIEND_RESPOND:
+        {
+            m_rh->addFriend();
+            break;
+        }
+        // 同意添加用户请求
+        case ENUM_MSG_TYPE_ADD_FRIEND_AGREE_REQUEST:
+        {
+            m_rh->addFriendRequest();
+            break;
+        }
+        // 同意添加用户响应
+        case ENUM_MSG_TYPE_ADD_FRIEND_AGREE_RESPOND:
+        {
+            m_rh->addFriendRespond();
+            break;
+        }
 
         default:
             break;
@@ -182,6 +210,7 @@ void Client::recvMsg()
 // 注册按钮的槽函数
 void Client::on_regist_PB_clicked()
 {
+    qDebug()<<"on_regist_PB_clicked";
     // 从ui对象中选取用户名和密码的输入框，并读出内容
     QString strName =  ui->userName_LE->text();
     QString strpwd =  ui->pwd_LE->text();
@@ -208,22 +237,13 @@ void Client::on_regist_PB_clicked()
     memcpy(pdu->caData,strName.toStdString().c_str(),32);
     memcpy(pdu->caData+32,strpwd.toStdString().c_str(),32);
 
-//    // 测试--打印检测发送的内容
-//    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
-//    qDebug()<<"regist strName: "<<pdu->caData;
-//    qDebug()<<"regist strpwd: "<<pdu->caData+32;
+    // 测试--打印检测发送的内容
+    qDebug()<<"regist uiMsgType: "<<pdu->uiMsgType;
+    qDebug()<<"regist strName: "<<pdu->caData;
+    qDebug()<<"regist strpwd: "<<pdu->caData+32;
 
     // 通过socket将消息发送到服务器
-    m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
-
-    // 释放pdu
-    free(pdu);
-    // 将pdu置为空
-    pdu = NULL;
-
-
-
-
+    sendPDU(pdu);
 }
 
 
@@ -262,10 +282,5 @@ void Client::on_login_PB_clicked()
     qDebug()<<"login strpwd: "<<pdu->caData+32;
 
     // 通过socket将消息发送到服务器
-    m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
-
-    // 释放pdu
-    free(pdu);
-    // 将pdu置为空
-    pdu = NULL;
+    sendPDU(pdu);
 }
