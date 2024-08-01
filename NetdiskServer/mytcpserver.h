@@ -14,6 +14,9 @@ public:
     // 重写连接成功的槽函数
     void incomingConnection(qintptr handle);
 
+    // 转发函数
+    void resend(char* tarName,PDU* pdu);
+
 public slots:
     // 删除已下线客户端socket的槽函数
     void deleteSocket(MyTcpSocket* mytcpsocket);

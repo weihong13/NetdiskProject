@@ -29,6 +29,12 @@ public:
     // 处理在线用户的函数
     QStringList handleOnlineUser();
 
+    // 判断是否转发
+    int handleAddFriend(const char *curName,const char* tarName);
+
+    // 建立好友关系
+    void handleAddFriendAgree(const char *curName,const char* tarName);
+
     // 数据库对象
     QSqlDatabase m_db;
 

@@ -178,5 +178,83 @@ QStringList OperateDB::handleOnlineUser()
 
 }
 
+// 处理添加好友的函数
+int OperateDB::handleAddFriend(const char *curName,const char *tarName)
+{ // 返回值：1 在线、0 不在线、-1 错误、-2 已经是好友
+    if(curName==NULL||tarName==NULL)
+    {
+        return -1;
+    }
+
+    // 判断要添加的用户是否已经是好友了
+    QString sql = QString(R"(
+                          select * from friend
+                          where
+                          (
+                            user_id =(select id from user_info where name='%1')
+                            and
+                            friend_id =(select id from user_info where name='%2')
+                          )
+                          or
+                          (
+                            friend_id=(select id from user_info where name='%l')
+                            and
+                            user_id =(select id from user_info where name='%2')
+                          )
+                          )").arg(curName).arg(tarName);
+
+    QSqlQuery q;
+    // 执行失败，返回-1
+    if(!q.exec(sql)) return -1;
+
+    // 已经是好友了，返回-2
+    if(q.next()) return -2;
+
+    // 判断用户 在线状态，
+    sql = QString("select online from user_info where name = '%1'").arg(tarName);
+    // 执行失败，返回-1
+    if(!q.exec(sql)) return -1;
+
+    if(q.next())
+    {   // 返回用户在线状态
+        return q.value(0).toInt(); // 1在线，0不在线
+    }
+    else
+    {   // 没有查到，返回错误
+        return -1;
+    }
+}
+
+// 建立好友关系
+void OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
+{
+
+    if(curName==NULL||tarName==NULL)
+    {
+        return;
+    }
+    qDebug()<<"handleAddFriendAgree ";
+    // 在好友列表中，插入一条数据
+    QString sql = QString(R"(
+                          insert into friend(user_id,friend_id)
+                          select u1.id,u2.id
+                          from user_info u1,user_info u2
+                          where u1.name = '%1' and u2.name = '%2')"
+                          ).arg(curName).arg(tarName);
+
+    QSqlQuery q;
+    q.exec(sql);
+    // 双向添加
+    sql = QString(R"(
+                          insert into friend(user_id,friend_id)
+                          select u1.id,u2.id
+                          from user_info u1,user_info u2
+                          where u1.name = '%1' and u2.name = '%2')"
+                          ).arg(tarName).arg(curName);
+
+    q.exec(sql);
+    qDebug()<<"handleAddFriendAgree return";
+}
+
 
 

@@ -32,6 +32,22 @@ void MyTcpServer::incomingConnection(qintptr handle)
     connect(tcpSocket,&MyTcpSocket::offline,this,&MyTcpServer::deleteSocket);
 }
 
+// 转发函数，将pdu转发给，目标用户
+void MyTcpServer::resend(char *tarName, PDU *pdu)
+{
+    qDebug()<<"resend tarName: "<<tarName;
+    // 在 m_tcpSocketList 列表中，查找要转发的目标用户
+    foreach(MyTcpSocket* tcpSocket, m_tcpSocketList)
+    {
+        if(tcpSocket->m_LoginName == tarName)
+        {
+            tcpSocket->write((char*)pdu,pdu->uiPDULen);
+            return;
+        }
+    }
+
+}
+
 // 删除已下线客户端socket的槽函数--将已下线的socket，从socket列表（m_tcpSocketList）中删除
 void MyTcpServer::deleteSocket(MyTcpSocket *mytcpsocket)
 {

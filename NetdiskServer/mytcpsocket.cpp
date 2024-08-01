@@ -77,6 +77,16 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->onlineUser();
         }
+        // 添加用户请求
+        case ENUM_MSG_TYPE_ADD_FRIEND_REQUEST:
+        {
+            return m_rh->addFriend();
+        }
+        // 同意添加用户请求
+        case ENUM_MSG_TYPE_ADD_FRIEND_AGREE_REQUEST:
+        {
+            m_rh->addFriendAgree();
+        }
         default:
             break;
     }
@@ -85,11 +95,15 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
 
 void MyTcpSocket::sendPDU(PDU *resPdu)
 {
+    qDebug()<<"recvMsg sendPDU ret";
     // 利用socket 向客户端发送 注册的响应
     write((char*)resPdu,resPdu->uiPDULen);
-    // 释放 resPdu
-    free(resPdu);
-    resPdu=NULL;
+    if(!resPdu)
+    {
+        // 释放 resPdu
+        free(resPdu);
+        resPdu=NULL;
+    }
 }
 
 
@@ -102,15 +116,18 @@ void MyTcpSocket::recvMsg()
     // 处理请求
     PDU* resPdu = handleReq(pdu);
 
-    // 释放pdu
-    free(pdu);
-    pdu=NULL;
+    qDebug()<<"recvMsg handleReq ret";
 
     // 响应为空，无需发送，函数返回
     if(!resPdu) return;
     // 发送响应
     sendPDU(resPdu);
-
+    if(!pdu)
+    {
+        // 释放pdu
+        free(pdu);
+        pdu=NULL;
+    }
 
 
 }
