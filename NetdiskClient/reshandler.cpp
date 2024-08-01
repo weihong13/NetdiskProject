@@ -224,3 +224,27 @@ void ResHandler::addFriendRespond()
         return;
     }
 }
+
+void ResHandler::showFriend()
+{
+    // 获取在线用户的个数
+    uint listSize = m_pdu->uiMsgLen/32;
+    qDebug()<<"listSize  "<<listSize;
+    // 创建变量存储在线用户的用户名
+    char friendName[32];
+    QStringList friendList;
+    // 将caMsg中的用户名挨个取出，并放到nameList中
+    for(uint i = 0; i <listSize; i++)
+    {
+        // 挨个取出用户名
+        memcpy(friendName,m_pdu->caMsg+i*32,32);
+        // 测试
+        qDebug()<<"ResHandler showFriend  friendName"<<QString(friendName);
+
+
+        // 将取到的用户名存放到 nameList中
+        friendList.append(QString(friendName));
+    }
+    // 调用展示在线用户的函数
+    Index::getInstance().getFriend()->showFirend(friendList);
+}

@@ -185,12 +185,19 @@ void Client::handleRes(PDU *pdu)
             m_rh->addFriendRequest();
             break;
         }
-        // 同意添加用户响应
+        // 同意添加用户的响应
         case ENUM_MSG_TYPE_ADD_FRIEND_AGREE_RESPOND:
         {
             m_rh->addFriendRespond();
             break;
         }
+        // 刷新好友的响应
+        case ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND:
+        {
+            m_rh->showFriend();
+            break;
+        }
+
 
         default:
             break;

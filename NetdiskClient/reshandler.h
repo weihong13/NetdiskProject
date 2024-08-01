@@ -28,6 +28,9 @@ public:
     // 处理其他客户端发来的 是否同意添加好友的响应
     void addFriendRespond();
 
+    // 展示好友
+    void showFriend();
+
     PDU* m_pdu;
 signals:
 

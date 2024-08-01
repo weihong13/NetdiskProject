@@ -2,6 +2,7 @@
 #include "ui_friend.h"
 #include "client.h"
 #include "protocol.h"
+#include "index.h"
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -21,6 +22,16 @@ Friend::~Friend()
     if(!m_onlineUser) delete m_onlineUser;
     delete ui;
 }
+
+
+void Friend::showFirend(QStringList nameList)
+{
+    ui->friend_LW->clear();
+    ui->friend_LW->addItems(nameList);
+
+}
+
+
 
 // 查找用户的槽函数
 void Friend::on_findUser_PB_clicked()
@@ -66,4 +77,20 @@ void Friend::on_onlineUser_PB_clicked()
        // 发送消息
        Client::getInstance().sendPDU(pdu);
     }
+}
+// 发送刷新好友的请求
+void Friend::flushFriendReq()
+{
+    qDebug()<<"Friend flushFriendReq";
+    PDU* pdu = initPDU(0);
+    pdu->uiMsgType = ENUM_MSG_TYPE_FLUSH_FRIEND_REQUEST;
+    // 发送消息
+    Client::getInstance().sendPDU(pdu);
+}
+
+
+void Friend::on_flushFriend_PB_clicked()
+{
+    qDebug()<<"Friend on_flushFriend_PB_clicked";
+    flushFriendReq();
 }
