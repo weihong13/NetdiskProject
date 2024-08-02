@@ -196,10 +196,10 @@ void ReqHandler::addFriendAgree()
     }
 }
 // 刷新好友列表请求
-PDU *ReqHandler::flushFriend(QString& name)
+PDU *ReqHandler::flushFriend(QString& curName)
 {
     // 处理消息
-    QStringList friendList = OperateDB::getInstance().handleFlushFriend(name);
+    QStringList friendList = OperateDB::getInstance().handleFlushFriend(curName);
 
     // 获取好友列表大小
     int listSize = friendList.size();
@@ -223,4 +223,29 @@ PDU *ReqHandler::flushFriend(QString& name)
     }
 
     return flushFriendPdu;
+}
+
+PDU *ReqHandler::deleteFriend(QString &curName)
+{
+    // 取出要删除的用户名
+    char tarName[32] = {'\0'};
+    memcpy(tarName,m_pdu->caData,32);
+
+    // 测试--打印检测发送的内容
+    qDebug()<<"ResHandler addFriendAgree uiMsgType: "<<m_pdu->uiMsgType;
+    qDebug()<<"ResHandler addFriendAgree curName: "<<m_pdu->caData;
+    // 处理消息，获取返回值
+    int ret = OperateDB::getInstance().handleDeleteFriend(curName,tarName);
+    // 构建响应PDU
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND;
+    memcpy(resPdu->caData,&ret,sizeof(int));
+
+    return resPdu;
+}
+
+// 好友聊天
+void ReqHandler::friendChat()
+{
+
 }

@@ -38,6 +38,9 @@ public:
     // 刷新好友
     QStringList handleFlushFriend(const QString& name);
 
+    // 处理删除好友
+    int handleDeleteFriend(const QString& name,const char *tarName);
+
     // 数据库对象
     QSqlDatabase m_db;
 

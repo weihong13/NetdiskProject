@@ -197,7 +197,7 @@ int OperateDB::handleAddFriend(const char *curName,const char *tarName)
                           )
                           or
                           (
-                            friend_id =(select id from user_info where name='%l')
+                            friend_id =(select id from user_info where name='%1')
                             and
                             user_id =(select id from user_info where name='%2')
                           )
@@ -261,9 +261,9 @@ QStringList OperateDB::handleFlushFriend(const QString& name)
                   select name from user_info
                   where id in
                   (
-                  select user_id from friend where friend_id = (select id from user_info where name = 'aaaa')
+                  select user_id from friend where friend_id = (select id from user_info where name = '%1')
                   union
-                  select friend_id from friend where user_id = (select id from user_info where name = 'aaaa')
+                  select friend_id from friend where user_id = (select id from user_info where name = '%1')
                   )
                   )"
                   ).arg(name);
@@ -276,6 +276,60 @@ QStringList OperateDB::handleFlushFriend(const QString& name)
         friendList.append(q.value(0).toString());
     }
     return friendList;
+}
+
+// 删除好友
+int OperateDB::handleDeleteFriend(const QString &curName,const char *tarName)
+{
+    // 返回值： 出错 0；不是好友 -1；删除成功 1；
+    if(curName==NULL||tarName == NULL)
+    {
+        return 0;
+    }
+    // 判断要删除的用户是否是好友
+    QString sql = QString(R"(
+                          select * from friend
+                          where
+                          (
+                            user_id =(select id from user_info where name='%1')
+                            and
+                            friend_id =(select id from user_info where name='%2')
+                          )
+                          or
+                          (
+                            friend_id =(select id from user_info where name='%1')
+                            and
+                            user_id =(select id from user_info where name='%2')
+                          )
+                          )").arg(curName).arg(tarName);
+    QSqlQuery q;
+    // 执行失败，返回-1
+    if(!q.exec(sql)) return 0;
+
+    if(q.next())
+    {
+         sql = QString(R"(
+                               delete from friend
+                               where
+                               (
+                                 user_id = (select id from user_info where name='%1')
+                                 and
+                                 friend_id = (select id from user_info where name='%2')
+                               )
+                               or
+                               (
+                                 friend_id=(select id from user_info where name='%1')
+                                 and
+                                 user_id =(select id from user_info where name='%2')
+                               ))").arg(curName).arg(tarName);
+
+        return q.exec(sql);
+    }
+    else
+    {
+        // 已经不是好友了
+        return -1;
+    }
 }
 
 

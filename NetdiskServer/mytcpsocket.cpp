@@ -98,6 +98,18 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->flushFriend(m_LoginName);
         }
+        // 删除好友请求
+        case ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST:
+        {
+            return m_rh->deleteFriend(m_LoginName);
+        }
+        // 好友聊天
+    case ENUM_MSG_TYPE_FRIEND_CHAT_REQUEST:
+    {
+        m_rh->friendChat();
+    }
+
+
 
 
         default:
@@ -111,7 +123,7 @@ void MyTcpSocket::sendPDU(PDU *resPdu)
     qDebug()<<"recvMsg sendPDU ret";
     // 利用socket 向客户端发送 注册的响应
     write((char*)resPdu,resPdu->uiPDULen);
-    if(!resPdu)
+    if(resPdu)
     {
         // 释放 resPdu
         free(resPdu);
@@ -135,7 +147,8 @@ void MyTcpSocket::recvMsg()
     if(!resPdu) return;
     // 发送响应
     sendPDU(resPdu);
-    if(!pdu)
+    // pdu不等于null，进行释放
+    if(pdu)
     {
         // 释放pdu
         free(pdu);

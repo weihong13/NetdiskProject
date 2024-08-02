@@ -26,7 +26,13 @@ public:
     void addFriendAgree();
 
     // 刷新好友列表请求
-    PDU* flushFriend(QString& name);
+    PDU* flushFriend(QString& curName);
+    // 删除好友请求
+    PDU* deleteFriend(QString& curName);
+
+    // 好友聊天
+    void friendChat();
+
 
     PDU* m_pdu;
 
