@@ -134,9 +134,13 @@ void Client::sendPDU(PDU *pdu)
     qDebug()<<"sendPDU";
     // 利用socket 向客户端发送 注册的响应
     m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
-    // 释放 pdu
-    free(pdu);
-    pdu=NULL;
+    if(pdu)
+    {
+        // 释放 pdu
+        free(pdu);
+        pdu=NULL;
+    }
+
 }
 
 // 处理响应
@@ -194,7 +198,13 @@ void Client::handleRes(PDU *pdu)
         // 刷新好友的响应
         case ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND:
         {
-            m_rh->showFriend();
+            m_rh->flushFriend();
+            break;
+        }
+        // 删除好友的响应
+        case ENUM_MSG_TYPE_DELETE_FRIEND_RESPOND:
+        {
+            m_rh->deleteFriend();
             break;
         }
 
@@ -209,9 +219,13 @@ void Client::recvMsg()
 {
     PDU* pdu = readPDU();
     handleRes(pdu);
-    // 释放pdu
-    free(pdu);
-    pdu=NULL;
+    if(pdu)
+    {
+        // 释放pdu
+        free(pdu);
+        pdu=NULL;
+    }
+
 }
 
 // 注册按钮的槽函数

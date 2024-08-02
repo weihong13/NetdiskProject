@@ -15,11 +15,14 @@ Friend::Friend(QWidget *parent) :
     ui->setupUi(this);
     // 新建一个 OnlineUser 对象，用于展示在线用户的界面
     m_onlineUser = new OnlineUser;
+    // 创建一个 Chat的对象，用于展示聊天界面
+    // m_chat = new Chat;
 }
 
 Friend::~Friend()
 {
     if(!m_onlineUser) delete m_onlineUser;
+    // if(!m_chat) delete m_chat;
     delete ui;
 }
 
@@ -94,3 +97,96 @@ void Friend::on_flushFriend_PB_clicked()
     qDebug()<<"Friend on_flushFriend_PB_clicked";
     flushFriendReq();
 }
+
+// 删除好友的按钮
+void Friend::on_delFriend_PB_clicked()
+{
+   QListWidgetItem* pItem =  ui->friend_LW->currentItem();
+   if(!pItem)
+   {
+       QMessageBox::information(this,"删除好友","请选择你要删除的好友");
+       return;
+   }
+   QString tarName = pItem->text();
+
+   int ret = QMessageBox::critical(this,"删除好友",QString("是否要删除 %1 ?").arg(tarName),"确认删除","取消");
+   if(ret == 0)
+   {
+       qDebug()<<"确认删除";
+       PDU* pdu = initPDU(0);
+       memcpy(pdu->caData,tarName.toStdString().c_str(),32);
+       pdu->uiMsgType = ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST;
+       // 发送消息
+       Client::getInstance().sendPDU(pdu);
+   }
+   else
+   {
+       qDebug()<<"取消";
+   }
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+//// 双击打开聊天界面
+//void Friend::on_friend_LW_itemDoubleClicked(QListWidgetItem *item)
+//{
+//    // 添加一个询问框，添加时进行确认
+//    QMessageBox::StandardButton ret =  QMessageBox::question(this,"好友聊天","是否要与该好友聊天？",QMessageBox::Yes|QMessageBox::No,QMessageBox::Yes);
+//    if(ret == QMessageBox::Yes)
+//    {
+//        // 测试
+//        qDebug()<<"on_friend_LW_itemDoubleClicked QMessageBox::Yes";
+//        // 要聊天，得到当前客户端的用户名和目标用户的用户名
+//        QString strCurName =  Client::getInstance().getLoginName();
+//        QString strTarName = item->text();
+//        qDebug()<<"on_friend_LW_itemDoubleClicked strCurName"<<strCurName;
+//        qDebug()<<"on_friend_LW_itemDoubleClicked strTarName"<<strTarName;
+
+//        m_chat->m_curName = strCurName;
+//        m_chat->m_tarName = strTarName;
+//        // 如果该界面是隐藏的，则进行展示
+//        if(m_chat->isHidden())
+//        {
+//           qDebug()<<"打开聊天界面";
+//           m_chat->setWindowTitle(m_chat->m_tarName);
+//           m_chat->show();
+//        }
+//    }
+//    else
+//    {
+//        // 不聊天，直接返回
+//        qDebug()<<"不聊天";
+//        return;
+//    }
+//}
+
+//void Friend::on_chat_PB_clicked()
+//{
+//    QListWidgetItem* pItem =  ui->friend_LW->currentItem();
+//    if(!pItem)
+//    {
+//        QMessageBox::information(this,"好友聊天","请选择你要聊天的好友");
+//        return;
+//    }
+//    QString strCurName =  Client::getInstance().getLoginName();
+//    QString strTarName = pItem->text();
+//    m_chat->m_curName = strCurName;
+//    m_chat->m_tarName = strTarName;
+//    // 如果该界面是隐藏的，则进行展示
+//    if(m_chat->isHidden())
+//    {
+//        qDebug()<<"打开聊天界面";
+//        m_chat->setWindowTitle(m_chat->m_tarName);
+//        m_chat->show();
+//    }
+//}

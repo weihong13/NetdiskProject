@@ -1,6 +1,8 @@
 #ifndef FRIEND_H
 #define FRIEND_H
 
+
+
 #include <onlineuser.h>
 #include <QWidget>
 
@@ -25,6 +27,9 @@ public:
     // 因此要添加一个OnlineUser类 成员变量
     OnlineUser* m_onlineUser;
 
+    // 好友聊天
+    // Chat* m_chat;
+
 
 private slots:
     void on_findUser_PB_clicked();
@@ -32,6 +37,9 @@ private slots:
     void on_onlineUser_PB_clicked();
 
     void on_flushFriend_PB_clicked();
+
+    void on_delFriend_PB_clicked();
+
 
 private:
     Ui::Friend *ui;

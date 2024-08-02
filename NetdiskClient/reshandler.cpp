@@ -39,10 +39,14 @@ void ResHandler::login(QString &loginName)
         loginName = caName;
         qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<loginName;
         QMessageBox::information(&Client::getInstance(),"登录","登录成功");
-        // 登录成功后，跳转到首页
-        Index::getInstance().show();
         // 隐藏登录界面
         Client::getInstance().hide();
+        // 登录成功后，跳转到首页
+        Index::getInstance().show();
+        // 登录成功后，刷新好友列表
+        Index::getInstance().getFriend()->flushFriendReq();
+
+
     }
     else
     {
@@ -183,6 +187,9 @@ void ResHandler::addFriendRequest()
         qDebug()<<"ResHandler addFriendRequest ret: "<<pdu->caMsg;
         // 发送消息
         Client::getInstance().sendPDU(pdu);
+        // 同意添加好友后，刷新好友列表
+        Index::getInstance().getFriend()->flushFriendReq();
+
 
     }
     else
@@ -216,6 +223,9 @@ void ResHandler::addFriendRespond()
     if(ret)
     {
         QMessageBox::information(&Index::getInstance(),"添加好友",QString("用户 %1 已同意添加请求，添加好友成功！").arg(tarName));
+        // 添加好友成功后，刷新好友列表
+        Index::getInstance().getFriend()->flushFriendReq();
+
         return;
     }
     else
@@ -225,7 +235,7 @@ void ResHandler::addFriendRespond()
     }
 }
 
-void ResHandler::showFriend()
+void ResHandler::flushFriend()
 {
     // 获取在线用户的个数
     uint listSize = m_pdu->uiMsgLen/32;
@@ -247,4 +257,32 @@ void ResHandler::showFriend()
     }
     // 调用展示在线用户的函数
     Index::getInstance().getFriend()->showFirend(friendList);
+}
+
+void ResHandler::deleteFriend()
+{
+    // 取出响应结果
+    int ret;
+    memcpy(&ret,m_pdu->caData,sizeof(int));
+    if(ret ==1)
+    {
+        QMessageBox::information(&Index::getInstance(),"删除好友","删除好友成功！");
+        // 删除好友成功后，刷新好友列表
+        Index::getInstance().getFriend()->flushFriendReq();
+
+        return;
+    }
+    else if(ret == -1)
+    {
+        QMessageBox::information(&Index::getInstance(),"删除好友","该好友已经不是你的好友了！");
+        // 删除好友成功后，刷新好友列表
+        Index::getInstance().getFriend()->flushFriendReq();
+
+    }
+    else
+    {
+
+        QMessageBox::information(&Index::getInstance(),"删除好友","删除好友出错！");
+        return;
+    }
 }
