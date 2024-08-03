@@ -232,8 +232,8 @@ PDU *ReqHandler::deleteFriend(QString &curName)
     memcpy(tarName,m_pdu->caData,32);
 
     // 测试--打印检测发送的内容
-    qDebug()<<"ResHandler addFriendAgree uiMsgType: "<<m_pdu->uiMsgType;
-    qDebug()<<"ResHandler addFriendAgree curName: "<<m_pdu->caData;
+    qDebug()<<"ResHandler deleteFriend uiMsgType: "<<m_pdu->uiMsgType;
+    qDebug()<<"ResHandler deleteFriend curName: "<<m_pdu->caData;
     // 处理消息，获取返回值
     int ret = OperateDB::getInstance().handleDeleteFriend(curName,tarName);
     // 构建响应PDU
@@ -244,8 +244,22 @@ PDU *ReqHandler::deleteFriend(QString &curName)
     return resPdu;
 }
 
-// 好友聊天
+// 好友聊天--用于向目标客户端转发聊天内容
 void ReqHandler::friendChat()
 {
+    // 取出目标用户名
+    char tarName[32] = {'\0'};
+
+    memcpy(tarName,m_pdu->caData+32,32);
+
+    // 测试--打印检测发送的内容
+    qDebug()<<"ResHandler friendChat uiMsgType: "<<m_pdu->uiMsgType;
+    qDebug()<<"ResHandler friendChat curName: "<<m_pdu->caData;
+    qDebug()<<"ResHandler friendChat tarName: "<<m_pdu->caData+32;
+    qDebug()<<"ResHandler friendChat caMsg : "<<m_pdu->caMsg;
+
+    // 将消息转发给目标用户
+    MyTcpServer::getInstance().resend(tarName,m_pdu);
+
 
 }

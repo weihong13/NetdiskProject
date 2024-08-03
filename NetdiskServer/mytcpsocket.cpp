@@ -91,6 +91,7 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         case ENUM_MSG_TYPE_ADD_FRIEND_AGREE_REQUEST:
         {
             m_rh->addFriendAgree();
+            break;
         }
 
         // 刷新好友请求
@@ -104,10 +105,11 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
             return m_rh->deleteFriend(m_LoginName);
         }
         // 好友聊天
-    case ENUM_MSG_TYPE_FRIEND_CHAT_REQUEST:
-    {
-        m_rh->friendChat();
-    }
+        case ENUM_MSG_TYPE_FRIEND_CHAT_REQUEST:
+        {
+            m_rh->friendChat();
+            break;
+        }
 
 
 

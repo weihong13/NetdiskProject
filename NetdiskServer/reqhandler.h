@@ -30,7 +30,7 @@ public:
     // 删除好友请求
     PDU* deleteFriend(QString& curName);
 
-    // 好友聊天
+    // 好友聊天--用于向目标客户端转发聊天内容
     void friendChat();
 
 
