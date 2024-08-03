@@ -16,6 +16,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    chat.cpp \
     file.cpp \
     friend.cpp \
     index.cpp \
@@ -23,18 +24,22 @@ SOURCES += \
     client.cpp \
     onlineuser.cpp \
     protocol.cpp \
+    qnchatmessage.cpp \
     reshandler.cpp
 
 HEADERS += \
+    chat.h \
     client.h \
     file.h \
     friend.h \
     index.h \
     onlineuser.h \
     protocol.h \
+    qnchatmessage.h \
     reshandler.h
 
 FORMS += \
+    chat.ui \
     client.ui \
     file.ui \
     friend.ui \
@@ -47,4 +52,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 RESOURCES += \
-    config.qrc
+    config.qrc \
+    image.qrc

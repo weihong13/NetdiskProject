@@ -208,6 +208,13 @@ void Client::handleRes(PDU *pdu)
             break;
         }
 
+        // 好友聊天的请求
+        case ENUM_MSG_TYPE_FRIEND_CHAT_REQUEST:
+        {
+            m_rh->friendChat();
+            break;
+        }
+
 
         default:
             break;

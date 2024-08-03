@@ -5,7 +5,7 @@
 
 #include <onlineuser.h>
 #include <QWidget>
-
+#include "chat.h"
 
 namespace Ui {
 class Friend;
@@ -28,7 +28,7 @@ public:
     OnlineUser* m_onlineUser;
 
     // 好友聊天
-    // Chat* m_chat;
+    Chat* m_chat;
 
 
 private slots:
@@ -40,6 +40,10 @@ private slots:
 
     void on_delFriend_PB_clicked();
 
+
+    void on_friend_LW_itemDoubleClicked(QListWidgetItem *item);
+
+    void on_chat_PB_clicked();
 
 private:
     Ui::Friend *ui;

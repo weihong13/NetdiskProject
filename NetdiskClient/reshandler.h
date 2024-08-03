@@ -34,6 +34,9 @@ public:
     // 删除好友
     void  deleteFriend();
 
+    // 好友聊天请求
+    void friendChat();
+
     PDU* m_pdu;
 signals:
 

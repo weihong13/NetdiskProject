@@ -23,7 +23,6 @@ void OnlineUser::showOnlineUser(QStringList nameList)
 {
     ui->onlineUser_LW->clear();
     ui->onlineUser_LW->addItems(nameList);
-
 }
 
 void OnlineUser::on_onlineUser_LW_itemDoubleClicked(QListWidgetItem *item)
