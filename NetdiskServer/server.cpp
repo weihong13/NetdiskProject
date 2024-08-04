@@ -23,6 +23,12 @@ Server::~Server()
     delete ui;
 }
 
+Server& Server::getInstance()
+{
+    static Server instance;
+    return instance;
+}
+
 // 加载配置文件
 void Server::loadConfig()
 {
@@ -44,9 +50,16 @@ void Server::loadConfig()
     this->m_IP = strList.at(0);
     // 获取端口号
     this->m_Port = strList.at(1).toShort();
+    this->m_RootPath = strList.at(2);
     // 测试打印
     // qDebug()<<"IP："<<m_IP;
     // qDebug()<<"Port："<<m_Port;
 
+}
+
+// 获取路径
+QString Server::getRootPath()
+{
+    return m_RootPath;
 }
 

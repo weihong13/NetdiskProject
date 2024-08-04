@@ -110,9 +110,11 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
             m_rh->friendChat();
             break;
         }
-
-
-
+        // 创建文件
+        case ENUM_MSG_TYPE_MKDIR_REQUEST:
+        {
+            return m_rh->mkdir();
+        }
 
         default:
             break;

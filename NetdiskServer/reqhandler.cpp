@@ -1,9 +1,11 @@
 #include "operatedb.h"
 #include "reqhandler.h"
 #include "mytcpserver.h"
+#include "server.h"
 
 
 #include <QDebug>
+#include <QDir>
 
 ReqHandler::ReqHandler(QObject *parent) : QObject(parent)
 {
@@ -23,6 +25,13 @@ PDU *ReqHandler::regist()
 
     // 处理消息
     bool ret = OperateDB::getInstance().handleRegist(caName,caPwd);
+
+    if(ret)
+    {
+        // 如果注册成功，给该用户添加一个单独的目录
+        QDir dir;
+        dir.mkdir(QString("%1/%2").arg(Server::getInstance().getRootPath()).arg(caName));
+    }
 
     // 向客户端发送响应
     // 初始化响应注册的PDU对象
@@ -260,6 +269,47 @@ void ReqHandler::friendChat()
 
     // 将消息转发给目标用户
     MyTcpServer::getInstance().resend(tarName,m_pdu);
+
+
+}
+
+
+// 创建文件夹
+PDU *ReqHandler::mkdir()
+{
+    // 取出文件名和当前路径
+    char strFolderName[32] = {'\0'};
+    char strCurFile[m_pdu->uiMsgLen];
+
+    memcpy(strFolderName,m_pdu->caData,32);
+    memcpy(strCurFile,m_pdu->caMsg,m_pdu->uiMsgLen);
+
+
+    qDebug()<<"ReqHandler mkdir strFolderName"<<strFolderName;
+    qDebug()<<"ReqHandler mkdir strCurFile"<<strCurFile;
+
+    // 构建响应的resPdu
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_MKDIR_REQUEST;
+    bool ret = false;
+    QDir dir;
+    // 如果当前目录不存在，报错
+    if(!dir.exists(strCurFile))
+    {
+        memcpy(resPdu->caData,&ret,sizeof(bool));
+        return resPdu;
+    }
+    QString strNewFile = QString("%1/%2").arg(strCurFile).arg(strFolderName);
+    // 如果新的目录存在，或者新建文件夹出错，报错
+    if(dir.exists(strNewFile) || !dir.mkdir(strNewFile))
+    {
+        memcpy(resPdu->caData,&ret,sizeof(bool));
+        return resPdu;
+    }
+    // 创建新的文件夹成功
+    ret = true;
+    memcpy(resPdu->caData,&ret,sizeof(bool));
+    return resPdu;
 
 
 }

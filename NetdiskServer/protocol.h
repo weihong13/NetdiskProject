@@ -37,6 +37,9 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_FRIEND_CHAT_REQUEST, // 好友聊天的请求
     ENUM_MSG_TYPE_FRIEND_CHAT_RESPOND, // 好友聊天的响应
 
+    ENUM_MSG_TYPE_MKDIR_REQUEST, // 创建文件夹的请求
+    ENUM_MSG_TYPE_MKDIR_RESPOND, // 创建文件夹的响应
+
 
     ENUM_MSG_TYPE_MAX=0x00ffffff, // 消息类型的最大值
 

@@ -6,7 +6,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    Server w;
+    Server::getInstance();
     // w.show();
 
     // 创建操作数据库的实例，调用connect函数，连接数据库

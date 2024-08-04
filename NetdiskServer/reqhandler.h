@@ -33,6 +33,9 @@ public:
     // 好友聊天--用于向目标客户端转发聊天内容
     void friendChat();
 
+    // 创建文件夹
+    PDU* mkdir();
+
 
     PDU* m_pdu;
 
