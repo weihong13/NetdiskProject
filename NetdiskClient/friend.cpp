@@ -75,12 +75,13 @@ void Friend::on_onlineUser_PB_clicked()
     if(m_onlineUser->isHidden())
     {
        m_onlineUser->show();
-
-       PDU* pdu = initPDU(0);
-       pdu->uiMsgType = ENUM_MSG_TYPE_ONLINE_USER_REQUEST;
-       // 发送消息
-       Client::getInstance().sendPDU(pdu);
     }
+    // 构建pdu
+    PDU* pdu = initPDU(0);
+    // 传入消息类型
+    pdu->uiMsgType = ENUM_MSG_TYPE_ONLINE_USER_REQUEST;
+    // 发送pdu到服务器
+    Client::getInstance().sendPDU(pdu);
 }
 
 // 发送刷新好友的请求

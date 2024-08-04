@@ -308,3 +308,22 @@ void ResHandler::friendChat()
 
 
 }
+
+// 创建文件夹
+void ResHandler::mkdir()
+{
+    // 取出响应结果
+    bool ret;
+    memcpy(&ret,m_pdu->caData,sizeof(bool));
+    if(ret)
+    {
+        QMessageBox::information(&Index::getInstance(),"创建文件夹","创建成功！");
+        return;
+    }
+    else
+    {
+
+        QMessageBox::information(&Index::getInstance(),"创建文件夹","创建失败！");
+        return;
+    }
+}

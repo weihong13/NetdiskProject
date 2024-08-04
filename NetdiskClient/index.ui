@@ -102,7 +102,7 @@ background-color: rgb(255, 255, 255);</string>
   <customwidget>
    <class>Friend</class>
    <extends>QWidget</extends>
-   <header>friend.h</header>
+   <header location="global">friend.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>

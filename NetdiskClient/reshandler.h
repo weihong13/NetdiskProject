@@ -37,6 +37,9 @@ public:
     // 好友聊天请求
     void friendChat();
 
+    // 创建文件夹
+    void mkdir();
+
     PDU* m_pdu;
 signals:
 

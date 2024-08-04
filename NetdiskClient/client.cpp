@@ -62,9 +62,13 @@ void Client::loadConfig()
     m_strIP = strList.at(0);
     // 读取端口号--端口号是2个字节16位的short类型，范围是0~65535
     m_uintPort = strList.at(1).toUShort();
+
+    m_RootPath = strList.at(2);
     // 测试--分别打印IP和端口号
-    // qDebug()<<"strIP: "<<m_strIP;
-    // qDebug()<<"uintPort: "<<m_uintPort;
+    // qDebug()<<"loadConfig strIP: "<<m_strIP;
+    // qDebug()<<"loadConfig uintPort: "<<m_uintPort;
+
+    qDebug()<<"loadConfig m_RootPath: "<<m_RootPath;
 
     // 关闭文件
     file.close();
@@ -85,6 +89,11 @@ QTcpSocket& Client::getTcpSocket()
 QString &Client::getLoginName()
 {
     return m_LoginName;
+}
+
+QString Client::getRootPath()
+{
+    return m_RootPath;
 }
 
 
@@ -212,6 +221,12 @@ void Client::handleRes(PDU *pdu)
         case ENUM_MSG_TYPE_FRIEND_CHAT_REQUEST:
         {
             m_rh->friendChat();
+            break;
+        }
+        // 创建文件夹的响应
+        case ENUM_MSG_TYPE_MKDIR_REQUEST:
+        {
+            m_rh->mkdir();
             break;
         }
 

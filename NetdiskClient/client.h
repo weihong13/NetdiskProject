@@ -27,7 +27,8 @@ public:
     QTcpSocket& getTcpSocket();
     // 获取当前登录的用户名
     QString& getLoginName();
-
+    //
+    QString getRootPath();
     // 读出PDU
     PDU* readPDU();
     // 发送PDU
@@ -58,6 +59,8 @@ private:
     QString m_strIP;
     // 端口号
     quint16 m_uintPort;
+    // 文件的根目录
+    QString m_RootPath;
     // 设置网络连接
     QTcpSocket m_tcpSocket;
     // 登陆成功的用户名
