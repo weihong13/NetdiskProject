@@ -130,7 +130,7 @@ PDU *ReqHandler::onlineUser()
 }
 
 // 处理添加好友的请求
-PDU *ReqHandler::addFriend()
+PDU *ReqHandler::addFriendReq()
 {
     // 取出用户名
     char curName[32] = {'\0'};
@@ -138,39 +138,37 @@ PDU *ReqHandler::addFriend()
     memcpy(curName,m_pdu->caData,32);
     memcpy(tarName,m_pdu->caData+32,32);
     // 测试
-    qDebug()<<"ReqHandler addFriend curName: "<<curName;
-    qDebug()<<"ReqHandler addFriend tarName: "<<tarName;
+    qDebug()<<"ReqHandler addFriendReq curName: "<<curName;
+    qDebug()<<"ReqHandler addFriendReq tarName: "<<tarName;
 
     // 在数据库中判断当前客户端与目标客户端是否已经是好友，以及目标客户端是否在线
     int ret = OperateDB::getInstance().handleAddFriend(curName,tarName);
-
+    qDebug()<<"ReqHandler addFriendReq ret: "<<ret;
     // 根据数据库响应，决定是否要转发
     if(ret==1)
     {
-        // 用户在线，向目标用户转发，是否同意添加好友的请求
-        m_pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_AGREE_REQUEST;
         MyTcpServer::getInstance().resend(tarName,m_pdu);
         return NULL;
-
 
     }
     else
     {
         // 如果添加过程出现错误，直接返回 添加好友的响应
         // 初始化响应查找用户的PDU对象
-        PDU* resPdu = initPDU(0);
+        PDU* resPdu = initPDU(sizeof (int));
         // 消息类型为添加好友的响应
         resPdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
         // 将消息存储到消息结构体
-        memcpy(resPdu->caData,&ret,sizeof(int));
+        memcpy(resPdu->caData,curName,32);
+        memcpy(resPdu->caData+32,tarName,32);
+        memcpy(resPdu->caMsg,&ret,sizeof(int));
         return resPdu;
-
     }
 
 }
 
 // 处理 是否同意添加好友的请求
-void ReqHandler::addFriendAgree()
+void ReqHandler::addFriendRes()
 {
     // 取出用户名，以及目标用户的态度
     char curName[32] = {'\0'};
@@ -180,27 +178,40 @@ void ReqHandler::addFriendAgree()
     memcpy(tarName,m_pdu->caData+32,32);
     memcpy(&ret,m_pdu->caMsg,sizeof(int));
 
-    // 测试--打印检测发送的内容
-    qDebug()<<"ResHandler addFriendAgree uiMsgType: "<<m_pdu->uiMsgType;
-    qDebug()<<"ResHandler addFriendAgree curName: "<<m_pdu->caData;
-    qDebug()<<"ResHandler addFriendAgree tarName: "<<m_pdu->caData+32;
-    qDebug()<<"ResHandler addFriendAgree ret : "<<m_pdu->caMsg;
+    // 测试--打印检测接收的内容
+    qDebug()<<"ResHandler addFriendRes uiMsgType: "<<m_pdu->uiMsgType;
+    qDebug()<<"ResHandler addFriendRes curName: "<<curName;
+    qDebug()<<"ResHandler addFriendRes tarName: "<<tarName;
+    qDebug()<<"ResHandler addFriendRes ret : "<<ret;
     if(ret==1)
     {
         // 目标用户同意添加好友
-        qDebug()<<"ResHandler addFriendAgree ret 1 : ";
+        qDebug()<<"ResHandler addFriendRes ret: 1";
         // 建立好友关系
-        OperateDB::getInstance().handleAddFriendAgree(curName,tarName);
+        int res = OperateDB::getInstance().handleAddFriendAgree(curName,tarName);
+        // 将消息存储到消息结构体
+        memcpy(m_pdu->caMsg,&res,sizeof(int));
         // 用户在线，转发添加请求
-        m_pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_AGREE_RESPOND;
+        m_pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
         MyTcpServer::getInstance().resend(curName,m_pdu);
+
+        // 构建发回目标用户的pdu
+        PDU* tarPdu = initPDU(sizeof(int));
+        tarPdu = m_pdu;
+        memcpy(tarPdu->caData,tarName,32);
+        memcpy(tarPdu->caData+32,curName,32);
+        // 将添加结果转发回目标用户
+        MyTcpServer::getInstance().resend(tarName,tarPdu);
+
+        free(tarPdu);
+        tarPdu = NULL;
 
     }
     else
     {
         // 目标用户拒绝添加好友
-        qDebug()<<"ResHandler addFriendAgree ret 2 : ";
-        m_pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_AGREE_RESPOND;
+        qDebug()<<"ResHandler addFriendRes ret 2 : ";
+        m_pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
         MyTcpServer::getInstance().resend(curName,m_pdu);
     }
 }

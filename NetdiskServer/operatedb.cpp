@@ -207,6 +207,7 @@ int OperateDB::handleAddFriend(const char *curName,const char *tarName)
     // 执行失败，返回-1
     if(!q.exec(sql)) return -1;
 
+
     // 已经是好友了，返回-2
     if(q.next()) return -2;
 
@@ -226,12 +227,12 @@ int OperateDB::handleAddFriend(const char *curName,const char *tarName)
 }
 
 // 建立好友关系
-void OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
+int OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
 {
 
     if(curName==NULL||tarName==NULL)
     {
-        return;
+        return -1;
     }
     qDebug()<<"handleAddFriendAgree ";
     // 在好友列表中，插入一条数据
@@ -243,9 +244,11 @@ void OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
                           ).arg(curName).arg(tarName);
 
     QSqlQuery q;
-    q.exec(sql);
+    if(!q.exec(sql)) return -1;
 
     qDebug()<<"handleAddFriendAgree return";
+    return 1;
+
 }
 
 // 刷新好友，返回好友列表

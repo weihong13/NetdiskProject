@@ -20,10 +20,10 @@ public:
     PDU* onlineUser();
 
     // 处理添加好友请求
-    PDU* addFriend();
+    PDU* addFriendReq();
 
     // 处理同意添加好友请求
-    void addFriendAgree();
+    void addFriendRes();
 
     // 刷新好友列表请求
     PDU* flushFriend(QString& curName);

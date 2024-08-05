@@ -33,7 +33,7 @@ public:
     int handleAddFriend(const char *curName,const char* tarName);
 
     // 建立好友关系
-    void handleAddFriendAgree(const char *curName,const char* tarName);
+    int handleAddFriendAgree(const char *curName,const char* tarName);
 
     // 刷新好友
     QStringList handleFlushFriend(const QString& name);
