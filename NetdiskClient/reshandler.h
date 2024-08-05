@@ -20,13 +20,11 @@ public:
     void onlineUser(QString &loginName);
 
     // 处理添加好友的响应
-    void addFriend();
+    void addFriendRes();
 
     // 处理其他客户发来的添加好友请求
-    void addFriendRequest();
+    void addFriendReq();
 
-    // 处理其他客户端发来的 是否同意添加好友的响应
-    void addFriendRespond();
 
     // 刷新好友
     void flushFriend();

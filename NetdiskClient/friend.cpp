@@ -74,6 +74,7 @@ void Friend::on_onlineUser_PB_clicked()
     // 如果该界面是隐藏的，则进行展示
     if(m_onlineUser->isHidden())
     {
+       m_onlineUser->setWindowTitle("在线用户");
        m_onlineUser->show();
     }
     // 构建pdu

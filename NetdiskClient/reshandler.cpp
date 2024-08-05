@@ -139,11 +139,17 @@ void ResHandler::onlineUser(QString &loginName)
 }
 
 // 处理添加好友的响应
-void ResHandler::addFriend()
+void ResHandler::addFriendRes()
 {
     // 将消息取出
     int ret;
-    memcpy(&ret,m_pdu->caData,sizeof(int));
+    char tarName[32] = {'\0'};
+    memcpy(tarName,m_pdu->caData+32,32);
+    memcpy(&ret,m_pdu->caMsg,sizeof(int));
+
+    qDebug()<<"ResHandler addFriendRes tarName："<<tarName;
+    qDebug()<<"ResHandler addFriendRes ret："<<ret;
+
     // 根据返回的响应进行处理
     if(ret == -2)
     {
@@ -152,9 +158,23 @@ void ResHandler::addFriend()
     }
     else if(ret == 0)
     {
-        QMessageBox::information(&Index::getInstance(),"添加好友","该用户不在线");
+        QMessageBox::information(&Index::getInstance(),"添加好友","该用户已下线");
         return;
     }
+    else if(ret == 1)
+    {
+        QMessageBox::information(&Index::getInstance(),"添加好友",QString("已经成功添加用户 %1 为好友！").arg(tarName));
+        // 添加好友成功后，刷新好友列表
+        Index::getInstance().getFriend()->flushFriendReq();
+
+        return;
+    }
+    else if(ret == 2)
+    {
+        QMessageBox::information(&Index::getInstance(),"添加好友",QString("用户 %1 不同意添加请求，添加好友失败！").arg(tarName));
+        return;
+    }
+
     else
     {
         QMessageBox::critical(&Index::getInstance(),"添加好友","添加好友错误！");
@@ -164,7 +184,7 @@ void ResHandler::addFriend()
 }
 
 // 处理其他客户发来的添加好友请求
-void ResHandler::addFriendRequest()
+void ResHandler::addFriendReq()
 {
     char curName[32] = {'\0'};
     memcpy(curName,m_pdu->caData,32);
@@ -176,7 +196,7 @@ void ResHandler::addFriendRequest()
         PDU* pdu = initPDU(len);
         int ret = 1;
         qDebug()<<"ResHandler addFriendRequest ret : "<<ret;
-        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_AGREE_REQUEST;
+        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
         memcpy(pdu->caData,m_pdu->caData,64);
         memcpy((char*)pdu->caMsg,&ret,sizeof(int));
 
@@ -197,8 +217,8 @@ void ResHandler::addFriendRequest()
         qDebug()<<"ResHandler addFriendRequest QMessageBox::no";
         int len = sizeof(int);
         PDU* pdu = initPDU(len);
-        int ret = 0;
-        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_AGREE_REQUEST;
+        int ret = 2;
+        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
         memcpy(pdu->caData,m_pdu->caData,64);
         memcpy(pdu->caMsg,&ret,sizeof(int));
         // 发送消息
@@ -213,27 +233,7 @@ void ResHandler::addFriendRequest()
     }
 }
 
-// 处理其他客户端发来的 是否同意添加好友的响应
-void ResHandler::addFriendRespond()
-{
-    char tarName[32] = {'\0'};
-    bool ret;
-    memcpy(tarName,m_pdu->caData+32,32);
-    memcpy(&ret,m_pdu->caMsg,sizeof(bool));
-    if(ret)
-    {
-        QMessageBox::information(&Index::getInstance(),"添加好友",QString("用户 %1 已同意添加请求，添加好友成功！").arg(tarName));
-        // 添加好友成功后，刷新好友列表
-        Index::getInstance().getFriend()->flushFriendReq();
 
-        return;
-    }
-    else
-    {
-        QMessageBox::information(&Index::getInstance(),"添加好友",QString("用户 %1 不同意添加请求，添加好友失败！").arg(tarName));
-        return;
-    }
-}
 
 void ResHandler::flushFriend()
 {
