@@ -207,10 +207,6 @@ void ResHandler::addFriendReq()
         qDebug()<<"ResHandler addFriendRequest ret: "<<pdu->caMsg;
         // 发送消息
         Client::getInstance().sendPDU(pdu);
-        // 同意添加好友后，刷新好友列表
-        Index::getInstance().getFriend()->flushFriendReq();
-
-
     }
     else
     {
@@ -318,6 +314,8 @@ void ResHandler::mkdir()
     if(ret)
     {
         QMessageBox::information(&Index::getInstance(),"创建文件夹","创建成功！");
+        // 创建文件夹成功后，调用刷新文件请求
+        Index::getInstance().getFile()->flushFileReq();
         return;
     }
     else
@@ -327,3 +325,32 @@ void ResHandler::mkdir()
         return;
     }
 }
+
+// 刷新文件
+void ResHandler::flushFile()
+{
+    // 计算文件信息列表的大小
+    int FileListCount = m_pdu->uiMsgLen/sizeof (FileInfo);
+
+    QList<FileInfo*> fileList;
+
+    // 挨个将每个文件的信息，放到 fileList列表中
+    for(int i = 0; i<FileListCount; i++)
+    {
+        FileInfo* pFileInfo = new FileInfo;
+        memcpy(pFileInfo,m_pdu->caMsg+i*sizeof (FileInfo),sizeof (FileInfo));
+        // 测试 打印每个文件的文件名
+        qDebug()<<"ResHandler flushFile pFileInfo caFileName"<<pFileInfo->caFileName;
+        // 将每个文件的文件信息结构体添加到 列表中
+        fileList.append(pFileInfo);
+    }
+    // 调用更新文件列表框的函数
+    Index::getInstance().getFile()->updateFileList(fileList);
+
+}
+
+
+
+
+
+

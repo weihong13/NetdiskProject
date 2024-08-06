@@ -38,6 +38,9 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_MKDIR_REQUEST, // 创建文件夹的请求
     ENUM_MSG_TYPE_MKDIR_RESPOND, // 创建文件夹的响应
 
+    ENUM_MSG_TYPE_FLUSH_FILE_REQUEST, // 刷新文件夹的请求
+    ENUM_MSG_TYPE_FLUSH_FILE_RESPOND, // 刷新文件夹的响应
+
 
     ENUM_MSG_TYPE_MAX=0x00ffffff, // 消息类型的最大值
 
@@ -51,6 +54,28 @@ struct PDU
      uint uiMsgLen;  // 实际的消息长度
      char caData[64];// 参数
      char caMsg[];   // 柔性数组，用来存放实际的消息
+};
+
+
+// 文件类型枚举值
+enum ENUM_FILE_TYPE
+{
+    ENUM_FILE_TYPE_MIN=0, // 消息类型的最小值
+
+    ENUM_FILE_TYPE_FOLDER,// 文件夹
+    ENUM_FILE_TYPE_TXT,   // 文本文件
+
+
+    ENUM_FILE_TYPE_MAX=0x00ffffff, // 消息类型的最大值
+};
+
+
+// 文件信息结构体
+struct FileInfo
+{
+    char caFileName[32];
+    uint uiFileType;
+
 };
 
 // 定义PDU初始化函数

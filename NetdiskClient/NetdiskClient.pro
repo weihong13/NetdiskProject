@@ -53,4 +53,5 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 
 RESOURCES += \
     config.qrc \
+    fileIcon.qrc \
     image.qrc

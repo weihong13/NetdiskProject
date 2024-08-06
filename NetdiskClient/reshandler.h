@@ -38,6 +38,9 @@ public:
     // 创建文件夹
     void mkdir();
 
+    // 刷新文件
+    void flushFile();
+
     PDU* m_pdu;
 signals:
 

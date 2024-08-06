@@ -218,9 +218,15 @@ void Client::handleRes(PDU *pdu)
             break;
         }
         // 创建文件夹的响应
-        case ENUM_MSG_TYPE_MKDIR_REQUEST:
+        case ENUM_MSG_TYPE_MKDIR_RESPOND:
         {
             m_rh->mkdir();
+            break;
+        }
+        // 刷新文件夹的响应
+        case ENUM_MSG_TYPE_FLUSH_FILE_RESPOND:
+        {
+            m_rh->flushFile();
             break;
         }
 
