@@ -289,19 +289,19 @@ void ReqHandler::friendChat()
 PDU *ReqHandler::mkdir()
 {
     // 取出文件名和当前路径
-    char strFolderName[32] = {'\0'};
+    char strFileName[32] = {'\0'};
     char strCurFile[m_pdu->uiMsgLen];
 
-    memcpy(strFolderName,m_pdu->caData,32);
+    memcpy(strFileName,m_pdu->caData,32);
     memcpy(strCurFile,m_pdu->caMsg,m_pdu->uiMsgLen);
 
 
-    qDebug()<<"ReqHandler mkdir strFolderName"<<strFolderName;
+    qDebug()<<"ReqHandler mkdir strFolderName"<<strFileName;
     qDebug()<<"ReqHandler mkdir strCurFile"<<strCurFile;
 
     // 构建响应的resPdu
     PDU* resPdu = initPDU(0);
-    resPdu->uiMsgType = ENUM_MSG_TYPE_MKDIR_REQUEST;
+    resPdu->uiMsgType = ENUM_MSG_TYPE_MKDIR_RESPOND;
     bool ret = false;
     QDir dir;
     // 如果当前目录不存在，报错
@@ -310,7 +310,7 @@ PDU *ReqHandler::mkdir()
         memcpy(resPdu->caData,&ret,sizeof(bool));
         return resPdu;
     }
-    QString strNewFile = QString("%1/%2").arg(strCurFile).arg(strFolderName);
+    QString strNewFile = QString("%1/%2").arg(strCurFile).arg(strFileName);
     // 如果新的目录存在，或者新建文件夹出错，报错
     if(dir.exists(strNewFile) || !dir.mkdir(strNewFile))
     {
@@ -324,3 +324,62 @@ PDU *ReqHandler::mkdir()
 
 
 }
+
+// 刷新文件
+PDU *ReqHandler::flushFile()
+{
+    // 获取当前路径
+    char curFile[m_pdu->uiMsgLen];
+    memcpy(curFile,m_pdu->caMsg,m_pdu->uiMsgLen);
+    QString strCurFile = QString(curFile);
+    qDebug()<<"ReqHandler flushFile strCurFile"<<strCurFile;
+
+    // 判空
+    if(strCurFile.isEmpty())
+    {
+        return NULL;
+    }
+    // 获取当前文件夹下的所以文件信息
+    QDir dir(strCurFile);
+    QFileInfoList fileInfoList =  dir.entryInfoList();
+    // 获取文件信息列表的大小
+    int fileInfoCount = fileInfoList.size();
+    qDebug()<<"ReqHandler flushFile fileInfoCount"<<fileInfoCount;
+
+    // 按照文件信息列表的大小，构建pdu
+    PDU* resPdu = initPDU(sizeof (FileInfo)*(fileInfoCount-2));
+    resPdu->uiMsgType = ENUM_MSG_TYPE_FLUSH_FILE_RESPOND;
+    // 创建一个文件信息结构体
+    FileInfo* pFileInfo = NULL;
+
+    QString fileName;
+    // 挨个获取当前文件夹下的每个文件的信息
+    for(int i = 0,j = 0; i < fileInfoCount; i++)
+    {
+        // 获取文件名
+        fileName = fileInfoList[i].fileName();
+        // 去除 . 和 .. 文件
+        if(fileName == QString(".") || fileName == QString("..")) continue;
+        qDebug()<<"ReqHandler flushFile fileName"<<fileName;
+        // 将char* 类型的caMsg 转换为 FileInfo*
+        pFileInfo = (FileInfo*)resPdu->caMsg + (j++);
+        // 将文件名 存放到 caMsg中
+        memcpy(pFileInfo->caFileName,fileName.toStdString().c_str(),32);
+        // 存放 文件类型
+        if(fileInfoList[i].isDir())
+        {
+            pFileInfo->uiFileType = ENUM_FILE_TYPE_FOLDER;
+        }
+        else if(fileInfoList[i].isFile())
+        {
+            pFileInfo->uiFileType = ENUM_FILE_TYPE_TXT;
+        }
+
+    }
+
+    return resPdu;
+}
+
+
+
+

@@ -36,6 +36,9 @@ public:
     // 创建文件夹
     PDU* mkdir();
 
+    // 刷新文件
+    PDU* flushFile();
+
 
     PDU* m_pdu;
 

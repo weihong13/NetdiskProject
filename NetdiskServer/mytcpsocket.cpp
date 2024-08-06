@@ -115,6 +115,11 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->mkdir();
         }
+        // 刷新文件
+        case ENUM_MSG_TYPE_FLUSH_FILE_REQUEST:
+        {
+            return m_rh->flushFile();
+        }
 
         default:
             break;
