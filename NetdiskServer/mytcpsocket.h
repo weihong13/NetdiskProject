@@ -27,7 +27,8 @@ public:
 
     // 请求处理器
     ReqHandler* m_rh;
-
+    // 存储socket中的消息
+    QByteArray m_buff;
 
 public slots:
     // 接收消息的槽函数

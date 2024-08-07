@@ -145,25 +145,39 @@ void MyTcpSocket::sendPDU(PDU *resPdu)
 // 接收消息的槽函数
 void MyTcpSocket::recvMsg()
 {
-    // 读取PDU
-    PDU* pdu = readPDU();
-    // 处理请求
-    PDU* resPdu = handleReq(pdu);
+    // 打印socket中的数据长度
+    qDebug()<<"recvMsg socket中接收到的数据长度："<<this->bytesAvailable();
 
-    qDebug()<<"recvMsg handleReq ret";
+    // 读取socket中的全部数据
+    QByteArray data = this->readAll();
+    // 将data中的数据 添加到 成员变量中
+    // 这里只能是添加，不能是赋值，赋值就无法解决半包的问题
+    m_buff.append(data);
 
-    // 响应为空，无需发送，函数返回
-    if(!resPdu) return;
-    // 发送响应
-    sendPDU(resPdu);
-    // pdu不等于null，进行释放
-    if(pdu)
+    while(m_buff.size() >= int(sizeof (PDU)))
     {
-        // 释放pdu
-        free(pdu);
-        pdu=NULL;
-    }
+        PDU* pdu = (PDU*)m_buff.data();
+        if(m_buff.size() < int(pdu->uiPDULen))
+        {
+            break;
+        }
+        // 测试--打印输出消息结构体的内容
+        qDebug()<<"MyTcpSocket recvMsg 结构体总长度："<<pdu->uiPDULen;
+        qDebug()<<"MyTcpSocket recvMsg 消息长度："<<pdu->uiMsgLen;
+        qDebug()<<"MyTcpSocket recvMsg 消息类型："<<pdu->uiMsgType;
+        qDebug()<<"MyTcpSocket recvMsg 参数1："<<pdu->caData;
+        qDebug()<<"MyTcpSocket recvMsg 参数2："<<pdu->caData+32;
+        qDebug()<<"MyTcpSocket recvMsg 接收到的消息："<<pdu->caMsg;
 
+        PDU* resPdu = handleReq(pdu);
+        // 响应为空，无需发送，函数返回
+        if(!resPdu) return;
+        // 发送响应
+        sendPDU(resPdu);
+
+        // 将读取完成的数据去除
+        m_buff.remove(0,pdu->uiPDULen);
+    }
 
 }
 
