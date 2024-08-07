@@ -110,7 +110,7 @@ Client &Client::getInstance()
 PDU *Client::readPDU()
 {
     // 打印socket中的数据长度
-    qDebug()<<"readPDU socket中接收到的数据长度："<<m_tcpSocket.bytesAvailable();
+    qDebug()<<"Client readPDU socket中接收到的数据长度："<<m_tcpSocket.bytesAvailable();
 
     // 读出消息结构体的总长度，这部分内容会从socket中读出去
     uint uiPDULen = 0; // 传出参数
@@ -131,16 +131,16 @@ PDU *Client::readPDU()
 //    qDebug()<<"readPDU 结构体总长度："<<pdu->uiPDULen;
 //    qDebug()<<"readPDU 消息类型："<<pdu->uiMsgType;
 //    qDebug()<<"readPDU 消息长度："<<pdu->uiMsgLen;
-    qDebug()<<"readPDU 参数1："<<pdu->caData;
-    qDebug()<<"readPDU 参数2："<<pdu->caData+32;
-    qDebug()<<"readPDU 接收到的消息："<<pdu->caMsg;
+    qDebug()<<"Client readPDU caData:"<<pdu->caData;
+    qDebug()<<"Client readPDU caData+32:"<<pdu->caData+32;
+    qDebug()<<"Client readPDU caMsg:"<<pdu->caMsg;
 
     return pdu;
 }
 
 void Client::sendPDU(PDU *pdu)
 {
-    qDebug()<<"sendPDU";
+    qDebug()<<"Client sendPDU";
     // 利用socket 向客户端发送 注册的响应
     m_tcpSocket.write((char*)pdu,pdu->uiPDULen);
     if(pdu)
@@ -239,13 +239,34 @@ void Client::handleRes(PDU *pdu)
 // 接收消息
 void Client::recvMsg()
 {
-    PDU* pdu = readPDU();
-    handleRes(pdu);
-    if(pdu)
+    // 打印socket中的数据长度
+    qDebug()<<"socket中接收到的数据长度："<<m_tcpSocket.bytesAvailable();
+
+    // 读取socket中的全部数据
+    QByteArray data = m_tcpSocket.readAll();
+    // 将data中的数据 添加到 成员变量中
+    // 这里只能是添加，不能是赋值，赋值就无法解决半包的问题
+    m_buff.append(data);
+
+    while(m_buff.size() >= int(sizeof (PDU)))
     {
-        // 释放pdu
-        free(pdu);
-        pdu=NULL;
+        PDU* pdu = (PDU*)m_buff.data();
+        if(m_buff.size() < int(pdu->uiPDULen))
+        {
+            break;
+        }
+        // 测试--打印输出消息结构体的内容
+        qDebug()<<"Client recvMsg 结构体总长度："<<pdu->uiPDULen;
+        qDebug()<<"Client recvMsg 消息长度："<<pdu->uiMsgLen;
+        qDebug()<<"Client recvMsg 消息类型："<<pdu->uiMsgType;
+        qDebug()<<"Client recvMsg caData："<<pdu->caData;
+        qDebug()<<"Client recvMsg caData+32："<<pdu->caData+32;
+        qDebug()<<"Client recvMsg caMsg："<<pdu->caMsg;
+        // 调用处理响应的函数
+        handleRes(pdu);
+
+        // 将读取完成的数据去除
+        m_buff.remove(0,pdu->uiPDULen);
     }
 
 }

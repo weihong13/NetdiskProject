@@ -15,6 +15,10 @@ File::File(QWidget *parent) :
             .arg(Client::getInstance().getRootPath())
             .arg(Client::getInstance().getLoginName());
     m_curPath = m_rootPath;
+
+    // 打开文件界面就刷新文件目录
+    flushFileReq();
+
     qDebug()<<"File m_rootPath"<<m_rootPath;
     qDebug()<<"File m_curPath"<<m_curPath;
 

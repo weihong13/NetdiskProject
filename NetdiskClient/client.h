@@ -67,6 +67,7 @@ private:
     QString m_LoginName;
     // 响应处理器
     ResHandler* m_rh;
+    QByteArray m_buff;
 
 
 
