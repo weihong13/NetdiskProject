@@ -234,7 +234,6 @@ int OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
     {
         return -1;
     }
-    qDebug()<<"handleAddFriendAgree ";
     // 在好友列表中，插入一条数据
     QString sql = QString(R"(
                           insert into friend(user_id,friend_id)
@@ -246,7 +245,7 @@ int OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
     QSqlQuery q;
     if(!q.exec(sql)) return -1;
 
-    qDebug()<<"handleAddFriendAgree return";
+    qDebug()<<"handleAddFriendAgree ret: "<<1;
     return 1;
 
 }

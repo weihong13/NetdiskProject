@@ -186,26 +186,37 @@ void ReqHandler::addFriendRes()
     if(ret==1)
     {
         // 目标用户同意添加好友
-        qDebug()<<"ResHandler addFriendRes ret: 1";
         // 建立好友关系
         int res = OperateDB::getInstance().handleAddFriendAgree(curName,tarName);
+
+        // 构建发回当前用户的pdu
+        PDU* curPdu = initPDU(sizeof(int));
+        curPdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+
+        memcpy(curPdu->caData,curName,32);
+        memcpy(curPdu->caData+32,tarName,32);
         // 将消息存储到消息结构体
-        memcpy(m_pdu->caMsg,&res,sizeof(int));
-        // 用户在线，转发添加请求
-        m_pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
-        MyTcpServer::getInstance().resend(curName,m_pdu);
+        memcpy(curPdu->caMsg,&res,sizeof(int));
+        // 转发添加响应
+        MyTcpServer::getInstance().resend(curName,curPdu);
 
         // 构建发回目标用户的pdu
         PDU* tarPdu = initPDU(sizeof(int));
-        tarPdu = m_pdu;
+        tarPdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+        // 将消息存储到消息结构体
         memcpy(tarPdu->caData,tarName,32);
         memcpy(tarPdu->caData+32,curName,32);
+        memcpy(tarPdu->caMsg,&res,sizeof(int));
+
         // 将添加结果转发回目标用户
         MyTcpServer::getInstance().resend(tarName,tarPdu);
 
+
+        // 释放
+        free(curPdu);
+        curPdu = NULL;
         free(tarPdu);
         tarPdu = NULL;
-
     }
     else
     {
@@ -380,7 +391,7 @@ PDU *ReqHandler::flushFile()
     return resPdu;
 }
 
-// 删除文件
+// 删除文件夹
 PDU *ReqHandler::rmdir()
 {
     // 获取文件路径
@@ -407,6 +418,41 @@ PDU *ReqHandler::rmdir()
 
     return resPdu;
 
+}
+
+// 删除文件
+PDU *ReqHandler::rmFile()
+{
+    // 获取文件所在目录
+    char* curPath = m_pdu->caMsg;
+    // 获取文件名
+    char fileName[32] = {'\0'};
+    memcpy(fileName,m_pdu->caData,32);
+    // 将文件名转为字符串
+    QString strFileName = QString(fileName);
+    // 将当前路径与选中 的文件名拼接，得到完整的文件路径
+    QString strFilePath = QString("%1/%2").arg(curPath).arg(strFileName);
+
+    qDebug()<<"ReqHandler rmFile strFilePath: "<<strFilePath;
+    qDebug()<<"ReqHandler rmFile strFileName: "<<strFileName;
+    // 是否成功删除、默认失败
+    bool ret = false;
+
+    QFileInfo fileInfo(strFilePath);
+    // 判断是否为文件
+    if(!fileInfo.isDir())
+    {
+        // 设置文件所在的目录
+        QDir dir(curPath);
+        // 删除文件
+        ret = dir.remove(strFileName);
+        qDebug()<<"ReqHandler rmFile ret: "<<ret;
+    }
+    // 构建响应pdu
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_RMFILE_RESPOND;
+    memcpy(resPdu->caData, &ret, sizeof (bool));
+    return resPdu;
 }
 
 

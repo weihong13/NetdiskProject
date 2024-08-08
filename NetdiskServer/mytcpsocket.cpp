@@ -125,6 +125,10 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->rmdir();
         }
+        case ENUM_MSG_TYPE_RMFILE_REQUEST:
+        {
+            return m_rh->rmFile();
+        }
 
         default:
             break;
@@ -134,6 +138,13 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
 
 void MyTcpSocket::sendPDU(PDU *resPdu)
 {
+
+    if(!resPdu)
+    {
+        qDebug()<<"recvMsg sendPDU resPdu = NULL";
+        return;
+    }
+
     qDebug()<<"recvMsg sendPDU ret";
     // 利用socket 向客户端发送 注册的响应
     write((char*)resPdu,resPdu->uiPDULen);
@@ -152,13 +163,15 @@ void MyTcpSocket::recvMsg()
 {
     // 打印socket中的数据长度
     qDebug()<<"recvMsg socket中接收到的数据长度："<<this->bytesAvailable();
+    qDebug()<<"recvMsg m_LoginName: "<<this->m_LoginName;
 
     // 读取socket中的全部数据
     QByteArray data = this->readAll();
     // 将data中的数据 添加到 成员变量中
     // 这里只能是添加，不能是赋值，赋值就无法解决半包的问题
     m_buff.append(data);
-
+    qDebug()<<"MyTcpSocket recvMsg m_buff size："<<m_buff.size();
+    int num = 1;
     while(m_buff.size() >= int(sizeof (PDU)))
     {
         PDU* pdu = (PDU*)m_buff.data();
@@ -167,21 +180,23 @@ void MyTcpSocket::recvMsg()
             break;
         }
         // 测试--打印输出消息结构体的内容
+        qDebug()<<"MyTcpSocket recvMsg num: "<<num++;
         qDebug()<<"MyTcpSocket recvMsg 结构体总长度："<<pdu->uiPDULen;
-        qDebug()<<"MyTcpSocket recvMsg 消息长度："<<pdu->uiMsgLen;
+        qDebug()<<"MyTcpSocket recvMsg 实际消息长度："<<pdu->uiMsgLen;
         qDebug()<<"MyTcpSocket recvMsg 消息类型："<<pdu->uiMsgType;
         qDebug()<<"MyTcpSocket recvMsg 参数1："<<pdu->caData;
         qDebug()<<"MyTcpSocket recvMsg 参数2："<<pdu->caData+32;
         qDebug()<<"MyTcpSocket recvMsg 接收到的消息："<<pdu->caMsg;
 
+        // 处理请求的函数
         PDU* resPdu = handleReq(pdu);
-        // 响应为空，无需发送，函数返回
-        if(!resPdu) return;
+
         // 发送响应
         sendPDU(resPdu);
 
         // 将读取完成的数据去除
         m_buff.remove(0,pdu->uiPDULen);
+        qDebug()<<"MyTcpSocket recvMsg m_buff size："<<m_buff.size();
     }
 
 }
