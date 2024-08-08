@@ -41,8 +41,11 @@ public:
     // 刷新文件响应
     void flushFile();
 
-    // 删除文件响应
+    // 删除文件夹响应
     void rmdir();
+
+    // 删除文件响应
+    void rmFile();
 
     PDU* m_pdu;
 signals:

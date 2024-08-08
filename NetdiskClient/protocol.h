@@ -44,6 +44,9 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_RMDIR_REQUEST, // 删除文件夹的请求
     ENUM_MSG_TYPE_RMDIR_RESPOND, // 删除文件夹的响应
 
+    ENUM_MSG_TYPE_RMFILE_REQUEST, // 删除文件的请求
+    ENUM_MSG_TYPE_RMFILE_RESPOND, // 删除文件的响应
+
 
     ENUM_MSG_TYPE_MAX=0x00ffffff, // 消息类型的最大值
 

@@ -27,15 +27,17 @@ void OnlineUser::showOnlineUser(QStringList nameList)
 
 void OnlineUser::on_onlineUser_LW_itemDoubleClicked(QListWidgetItem *item)
 {
+    // 获取目标客户端的用户名
+    QString strTarName = item->text();
     // 添加一个询问框，添加时进行确认
-    QMessageBox::StandardButton ret =  QMessageBox::question(this,"添加好友","是否添加该用户为好友？",QMessageBox::Yes|QMessageBox::No,QMessageBox::No);
+    int ret =  QMessageBox::question(this,"添加好友",QString("是否添加用户: %1 为好友？").arg(strTarName));
     if(ret == QMessageBox::Yes)
     {
         // 测试
         qDebug()<<"on_onlineUser_LW_itemDoubleClicked QMessageBox::Yes";
-        // 要添加好友，得到当前客户端的用户名和目标用户的用户名
+        // 要添加好友，得到当前客户端的用户名
         QString strCurName =  Client::getInstance().getLoginName();
-        QString strTarName = item->text();
+
         // 测试
         qDebug()<<"on_onlineUser_LW_itemDoubleClicked strCurName:"<<strCurName;
         qDebug()<<"on_onlineUser_LW_itemDoubleClicked strTarName:"<<strTarName;

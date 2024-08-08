@@ -40,6 +40,8 @@ private slots:
 
     void on_rmdir_PB_clicked();
 
+    void on_rmFile_PB_clicked();
+
 private:
     Ui::File *ui;
     // 用户的根目录

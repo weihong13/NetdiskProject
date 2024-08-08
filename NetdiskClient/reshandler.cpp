@@ -77,9 +77,10 @@ void ResHandler::findUser()
     }
     else if(ret == 1)
     {
-        int res = QMessageBox::information(&Index::getInstance(),"查找用户",QString("用户 %1 在线，是否添加好友？").arg(caName),"添加好友","取消");
+        int res = QMessageBox::question(&Index::getInstance(),"查找用户",QString("用户 %1 在线，是否添加好友？").arg(caName),"添加好友","取消");
         if(res == 0)
         {
+            // 获取当前用户名 和 目标用户名
             QString strCurName =  Client::getInstance().getLoginName();
             QString strTarName = caName;
             // 测试
@@ -142,6 +143,51 @@ void ResHandler::onlineUser(QString &loginName)
     Index::getInstance().getFriend()->m_onlineUser->showOnlineUser(nameList);
 }
 
+
+// 处理其他客户发来的添加好友请求
+void ResHandler::addFriendReq()
+{
+    char curName[32] = {'\0'};
+    memcpy(curName,m_pdu->caData,32);
+    int ret =  QMessageBox::question(Index::getInstance().getFriend(),"添加好友",QString("是否同意 %1 的添加好友请求？").arg(curName),"同意添加","取消");
+    if(ret == 0)
+    {
+        qDebug()<<"ResHandler addFriendRequest QMessageBox::Yes";
+        PDU* pdu = initPDU(sizeof(int));
+        ret = 1;
+        qDebug()<<"ResHandler addFriendRequest ret : "<<ret;
+        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+        memcpy(pdu->caData,m_pdu->caData,64);
+        memcpy(pdu->caMsg,&ret,sizeof(int));
+
+        // 测试--打印检测发送的内容
+        qDebug()<<"ResHandler addFriendRequest uiMsgType: "<<pdu->uiMsgType;
+        qDebug()<<"ResHandler addFriendRequest curName: "<<pdu->caData;
+        qDebug()<<"ResHandler addFriendRequest tarName: "<<pdu->caData+32;
+        qDebug()<<"ResHandler addFriendRequest ret: "<<pdu->caMsg;
+        // 发送消息
+        Client::getInstance().sendPDU(pdu);
+    }
+    else
+    {
+        qDebug()<<"ResHandler addFriendRequest QMessageBox::no";
+        PDU* pdu = initPDU(sizeof(int));
+        ret = 2;
+        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
+        memcpy(pdu->caData,m_pdu->caData,64);
+        memcpy(pdu->caMsg,&ret,sizeof(int));
+        // 发送消息
+
+        // 测试--打印检测发送的内容
+        qDebug()<<"ResHandler addFriendRequest uiMsgType: "<<pdu->uiMsgType;
+        qDebug()<<"ResHandler addFriendRequest curName: "<<pdu->caData;
+        qDebug()<<"ResHandler addFriendRequest tarName: "<<pdu->caData+32;
+        qDebug()<<"ResHandler addFriendRequest ret : "<<pdu->caMsg;
+
+        Client::getInstance().sendPDU(pdu);
+    }
+}
+
 // 处理添加好友的响应
 void ResHandler::addFriendRes()
 {
@@ -168,9 +214,7 @@ void ResHandler::addFriendRes()
     else if(ret == 1)
     {
         QMessageBox::information(&Index::getInstance(),"添加好友",QString("已经成功添加用户 %1 为好友！").arg(tarName));
-        // 添加好友成功后，刷新好友列表
         Index::getInstance().getFriend()->flushFriendReq();
-
         return;
     }
     else if(ret == 2)
@@ -185,52 +229,6 @@ void ResHandler::addFriendRes()
         return;
     }
 
-}
-
-// 处理其他客户发来的添加好友请求
-void ResHandler::addFriendReq()
-{
-    char curName[32] = {'\0'};
-    memcpy(curName,m_pdu->caData,32);
-    QMessageBox::StandardButton ret =  QMessageBox::question(Index::getInstance().getFriend(),"添加好友",QString("是否同意 %1 的添加好友请求？").arg(curName),QMessageBox::Yes|QMessageBox::No,QMessageBox::No);
-    if(ret == QMessageBox::Yes)
-    {
-        qDebug()<<"ResHandler addFriendRequest QMessageBox::Yes";
-        int len = sizeof(int);
-        PDU* pdu = initPDU(len);
-        int ret = 1;
-        qDebug()<<"ResHandler addFriendRequest ret : "<<ret;
-        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
-        memcpy(pdu->caData,m_pdu->caData,64);
-        memcpy((char*)pdu->caMsg,&ret,sizeof(int));
-
-        // 测试--打印检测发送的内容
-        qDebug()<<"ResHandler addFriendRequest uiMsgType: "<<pdu->uiMsgType;
-        qDebug()<<"ResHandler addFriendRequest curName: "<<pdu->caData;
-        qDebug()<<"ResHandler addFriendRequest tarName: "<<pdu->caData+32;
-        qDebug()<<"ResHandler addFriendRequest ret: "<<pdu->caMsg;
-        // 发送消息
-        Client::getInstance().sendPDU(pdu);
-    }
-    else
-    {
-        qDebug()<<"ResHandler addFriendRequest QMessageBox::no";
-        int len = sizeof(int);
-        PDU* pdu = initPDU(len);
-        int ret = 2;
-        pdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
-        memcpy(pdu->caData,m_pdu->caData,64);
-        memcpy(pdu->caMsg,&ret,sizeof(int));
-        // 发送消息
-
-        // 测试--打印检测发送的内容
-        qDebug()<<"ResHandler addFriendRequest uiMsgType: "<<pdu->uiMsgType;
-        qDebug()<<"ResHandler addFriendRequest curName: "<<pdu->caData;
-        qDebug()<<"ResHandler addFriendRequest tarName: "<<pdu->caData+32;
-        qDebug()<<"ResHandler addFriendRequest ret : "<<pdu->caMsg;
-
-        Client::getInstance().sendPDU(pdu);
-    }
 }
 
 
@@ -369,6 +367,24 @@ void ResHandler::rmdir()
     else
     {
         QMessageBox::information(Index::getInstance().getFile(),"删除文件夹","删除文件夹失败");
+    }
+    Index::getInstance().getFile()->flushFileReq();
+}
+
+// 删除文件响应
+void ResHandler::rmFile()
+{
+    bool ret;
+    memcpy(&ret,m_pdu->caData,sizeof (bool));
+
+    if(ret)
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"删除文件","删除文件成功");
+
+    }
+    else
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"删除文件","删除文件失败");
     }
     Index::getInstance().getFile()->flushFileReq();
 }

@@ -173,3 +173,47 @@ void File::on_rmdir_PB_clicked()
 
 
 
+// 删除文件的槽函数
+void File::on_rmFile_PB_clicked()
+{
+
+    // 获取当前选中的列表框
+    QListWidgetItem* pItem = ui->file_LW->currentItem();
+    // 没选择文件夹
+    if(pItem == NULL)
+    {
+        QMessageBox::information(this,"删除文件","请选择要删除的文件");
+        return;
+    }
+    // 获取选中的文件名
+    QString strDelFileName = pItem->text();
+    // 判断是否为文件夹
+    foreach(FileInfo* pFileInfo,m_fileInfoList)
+    {
+        if(pFileInfo->caFileName == strDelFileName && pFileInfo->uiFileType == ENUM_FILE_TYPE_FOLDER)
+        {
+            QMessageBox::information(this,"删除文件","请选择文件");
+            return;
+        }
+    }
+    // 再次询问是否删除
+    int ret = QMessageBox::question(this,"删除文件",QString("是否要删除文件：%1").arg(strDelFileName));
+    // 不删除
+    if(ret == QMessageBox::No)
+    {
+        return;
+    }
+    // 确认删除
+
+    // 构建pdu
+    PDU* pdu = initPDU(m_curPath.toStdString().size()+1);
+
+    pdu->uiMsgType = ENUM_MSG_TYPE_RMFILE_REQUEST;
+    // 将要删除的文件名与当前文件所在的路径存放到pdu
+    memcpy(pdu->caData,strDelFileName.toStdString().c_str(),32);
+    memcpy(pdu->caMsg,m_curPath.toStdString().c_str(),m_curPath.toStdString().size());
+
+    // 发送消息
+    Client::getInstance().sendPDU(pdu);
+
+}
