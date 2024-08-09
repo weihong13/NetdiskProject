@@ -133,6 +133,16 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->renameFile();
         }
+        // 移动文件时的刷新文件
+        case ENUM_MSG_TYPE_MOVE_FLUSH_FILE_REQUEST:
+        {
+            return m_rh->moveFlushFile();
+        }
+        // 移动文件的请求
+        case ENUM_MSG_TYPE_MOVE_FILE_REQUEST:
+        {
+            return m_rh->moveFile();
+        }
 
         default:
             break;

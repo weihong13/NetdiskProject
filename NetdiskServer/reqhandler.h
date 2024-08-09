@@ -48,6 +48,12 @@ public:
     // 重命名文件
     PDU* renameFile();
 
+    // 刷新文件
+    PDU* moveFlushFile();
+
+    // 移动文件
+    PDU* moveFile();
+
 
     PDU* m_pdu;
 

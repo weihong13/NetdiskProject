@@ -241,13 +241,11 @@ int OperateDB::handleAddFriendAgree(const char *curName, const char *tarName)
                           from user_info u1,user_info u2
                           where u1.name = '%1' and u2.name = '%2')"
                           ).arg(curName).arg(tarName);
-
     QSqlQuery q;
+    // 插入失败，返回 -1
     if(!q.exec(sql)) return -1;
-
-    qDebug()<<"handleAddFriendAgree ret: "<<1;
+    // 插入成功，返回 1
     return 1;
-
 }
 
 // 刷新好友，返回好友列表

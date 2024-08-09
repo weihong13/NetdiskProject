@@ -132,7 +132,7 @@ PDU *ReqHandler::onlineUser()
 // 处理添加好友的请求
 PDU *ReqHandler::addFriendReq()
 {
-    // 取出用户名
+    // 取出Cur客户端 以及 Tar客户端的用户名
     char curName[32] = {'\0'};
     char tarName[32] = {'\0'};
     memcpy(curName,m_pdu->caData,32);
@@ -154,7 +154,7 @@ PDU *ReqHandler::addFriendReq()
     else
     {
         // 如果添加过程出现错误，直接返回 添加好友的响应
-        // 初始化响应查找用户的PDU对象
+        // 初始化响应添加好友的PDU对象
         PDU* resPdu = initPDU(sizeof (int));
         // 消息类型为添加好友的响应
         resPdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
@@ -469,16 +469,107 @@ PDU *ReqHandler::renameFile()
     // 读出当前路径
     QString filePath = m_pdu->caMsg;
 
-    // 拼接路径
-    QString strOldPath = QString("%1/%2").arg(filePath).arg(strOldName);
-    QString strNewPath = QString("%1/%2").arg(filePath).arg(strNewName);
     // 重命名，得到返回值
-    QDir dir;
-    bool ret = dir.rename(strOldPath,strNewPath);
+    QDir dir(filePath);
+    bool ret = dir.rename(strOldName,strNewName);
     // 构建响应pdu
     PDU* resPdu = initPDU(0);
     resPdu->uiMsgType = ENUM_MSG_TYPE_RENAME_FILE_RESPOND;
     memcpy(resPdu->caData,&ret,sizeof (bool));
+
+    return resPdu;
+
+}
+
+// 移动文件时的刷新文件请求
+PDU *ReqHandler::moveFlushFile()
+{
+    // 获取当前路径
+    char curFile[m_pdu->uiMsgLen];
+    memcpy(curFile,m_pdu->caMsg,m_pdu->uiMsgLen);
+    QString strCurFile = QString(curFile);
+    qDebug()<<"ReqHandler flushFile strCurFile"<<strCurFile;
+
+    // 判空
+    if(strCurFile.isEmpty())
+    {
+        return NULL;
+    }
+    // 获取当前文件夹下的所以文件信息
+    QDir dir(strCurFile);
+    QFileInfoList fileInfoList =  dir.entryInfoList();
+    // 获取文件信息列表的大小
+    int fileInfoCount = fileInfoList.size();
+    qDebug()<<"ReqHandler flushFile fileInfoCount"<<fileInfoCount;
+
+    // 按照文件信息列表的大小，构建pdu
+    PDU* resPdu = initPDU(sizeof (FileInfo)*(fileInfoCount-2));
+    resPdu->uiMsgType = ENUM_MSG_TYPE_MOVE_FLUSH_FILE_RESPOND;
+    // 创建一个文件信息结构体
+    FileInfo* pFileInfo = NULL;
+
+    QString fileName;
+    // 挨个获取当前文件夹下的每个文件的信息
+    for(int i = 0,j = 0; i < fileInfoCount; i++)
+    {
+        // 获取文件名
+        fileName = fileInfoList[i].fileName();
+        // 去除 . 和 .. 文件
+        if(fileName == QString(".") || fileName == QString("..")) continue;
+        qDebug()<<"ReqHandler flushFile fileName"<<fileName;
+        // 将char* 类型的caMsg 转换为 FileInfo*
+        pFileInfo = (FileInfo*)resPdu->caMsg + (j++);
+        // 将文件名 存放到 caMsg中
+        memcpy(pFileInfo->caFileName,fileName.toStdString().c_str(),32);
+        // 存放 文件类型
+        if(fileInfoList[i].isDir())
+        {
+            pFileInfo->uiFileType = ENUM_FILE_TYPE_FOLDER;
+        }
+        else if(fileInfoList[i].isFile())
+        {
+            pFileInfo->uiFileType = ENUM_FILE_TYPE_TXT;
+        }
+
+    }
+
+    return resPdu;
+}
+
+// 移动文件
+PDU *ReqHandler::moveFile()
+{
+    // 获取路径长度
+    int srcLen;
+    int tarLen;
+    memcpy(&srcLen,m_pdu->caData,sizeof(int));
+    memcpy(&tarLen,m_pdu->caData+32,sizeof(int));
+    // 获取路径
+    char* srcPath = new char[srcLen+1];
+    char* tarPath = new char[tarLen+1];
+    // 将内容设为 '\0' 防止申请的空间存在不干净的数据
+    memset(srcPath,'\0',srcLen+1);
+    memset(tarPath,'\0',tarLen+1);
+
+    memcpy(srcPath,m_pdu->caMsg,srcLen);
+    memcpy(tarPath,m_pdu->caMsg+srcLen,tarLen);
+
+    // 测试
+    qDebug()<<"ReqHandler moveFile strSrcPath"<<srcPath;
+    qDebug()<<"ReqHandler moveFile strTarPath"<<tarPath;
+
+    bool ret = QFile::rename(srcPath,tarPath);
+
+    // 构建响应pdu
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_MOVE_FILE_RESPOND;
+    memcpy(resPdu->caData,&ret,sizeof (bool));
+
+    delete[] srcPath;
+    srcPath = NULL;
+
+    delete[] tarPath;
+    tarPath = NULL;
 
     return resPdu;
 
