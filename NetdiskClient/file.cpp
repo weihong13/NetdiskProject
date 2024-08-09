@@ -1,7 +1,8 @@
 #include "client.h"
 #include "file.h"
 #include "ui_file.h"
-#include "index.h"
+#include <QDebug>
+
 
 #include <QInputDialog>
 #include <QMessageBox>
@@ -19,6 +20,7 @@ File::File(QWidget *parent) :
     // 打开文件界面就刷新文件目录
     flushFileReq();
 
+    m_moveFile =  new MoveFile;
     qDebug()<<"File m_rootPath"<<m_rootPath;
     qDebug()<<"File m_curPath"<<m_curPath;
 
@@ -26,6 +28,7 @@ File::File(QWidget *parent) :
 
 File::~File()
 {
+    if(!m_moveFile) delete m_moveFile;
     delete ui;
 }
 
@@ -302,5 +305,43 @@ void File::on_renameFile_PB_clicked()
     memcpy(pdu->caMsg,m_curPath.toStdString().c_str(),m_curPath.toStdString().size());
     // 发送重命名请求到服务器
     Client::getInstance().sendPDU(pdu);
+
+}
+
+void File::on_moveFile_PB_clicked()
+{
+    m_moveFile->m_curPath = m_rootPath;
+    // 获取当前选中的列表框
+    QListWidgetItem* pItem = ui->file_LW->currentItem();
+    // 没选择文件夹
+    if(pItem == NULL)
+    {
+        QMessageBox::information(this,"移动文件","请选择要移动的文件");
+        return;
+    }
+    // 获取选中的文件名
+    QString strMoveFileName = pItem->text();
+    // 判断是否为文件夹
+    foreach(FileInfo* pFileInfo,m_fileInfoList)
+    {
+        if(pFileInfo->caFileName == strMoveFileName && pFileInfo->uiFileType == ENUM_FILE_TYPE_FOLDER)
+        {
+            QMessageBox::information(this,"移动文件","请选择文件");
+            return;
+        }
+    }
+
+    // 要移动的文件名
+    m_moveFile->m_moveFileName = strMoveFileName;
+    // 要移动之前的路径
+    m_moveFile->m_beforePath = m_curPath;
+    // 如果该界面是隐藏的，则进行展示
+    if(m_moveFile->isHidden())
+    {
+       m_moveFile->setWindowTitle("选择要移动到的路径");
+       m_moveFile->setWindowModality(Qt::ApplicationModal);
+       m_moveFile->flushFileReq();
+       m_moveFile->show();
+    }
 
 }

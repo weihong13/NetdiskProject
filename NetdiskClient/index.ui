@@ -90,6 +90,9 @@ background-color: rgb(255, 255, 255);</string>
      </item>
      <item>
       <widget class="QStackedWidget" name="stackedWidget">
+       <property name="frameShadow">
+        <enum>QFrame::Plain</enum>
+       </property>
        <widget class="Friend" name="friendPage"/>
        <widget class="File" name="filePage"/>
       </widget>

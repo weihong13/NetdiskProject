@@ -50,6 +50,14 @@ enum ENUM_MSG_TYPE
     ENUM_MSG_TYPE_RENAME_FILE_REQUEST, // 重命名文件的请求
     ENUM_MSG_TYPE_RENAME_FILE_RESPOND, // 重命名文件的响应
 
+
+    ENUM_MSG_TYPE_MOVE_FLUSH_FILE_REQUEST, // 移动文件夹时刷新文件夹的请求
+    ENUM_MSG_TYPE_MOVE_FLUSH_FILE_RESPOND, // 移动文件夹时刷新文件夹的响应
+
+    ENUM_MSG_TYPE_MOVE_FILE_REQUEST, // 移动文件夹的请求
+    ENUM_MSG_TYPE_MOVE_FILE_RESPOND, // 移动文件夹的响应
+
+
     ENUM_MSG_TYPE_MAX=0x00ffffff, // 消息类型的最大值
 
 };

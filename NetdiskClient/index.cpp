@@ -17,6 +17,7 @@ Index::~Index()
 
 Index &Index::getInstance()
 {
+    qDebug()<<"Index getInstance";
     static Index instance;
     return instance;
 }

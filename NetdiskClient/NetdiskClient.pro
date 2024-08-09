@@ -22,6 +22,7 @@ SOURCES += \
     index.cpp \
     main.cpp \
     client.cpp \
+    movefile.cpp \
     onlineuser.cpp \
     protocol.cpp \
     qnchatmessage.cpp \
@@ -33,6 +34,7 @@ HEADERS += \
     file.h \
     friend.h \
     index.h \
+    movefile.h \
     onlineuser.h \
     protocol.h \
     qnchatmessage.h \
@@ -44,6 +46,7 @@ FORMS += \
     file.ui \
     friend.ui \
     index.ui \
+    movefile.ui \
     onlineuser.ui
 
 # Default rules for deployment.

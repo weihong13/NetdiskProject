@@ -1,7 +1,7 @@
 #ifndef FILE_H
 #define FILE_H
 
-#include "protocol.h"
+#include "movefile.h"
 
 #include <QListWidgetItem>
 #include <QWidget>
@@ -30,7 +30,7 @@ public:
 
 
     QList<FileInfo*> m_fileInfoList;
-
+    MoveFile* m_moveFile;
 
 
 
@@ -48,6 +48,8 @@ private slots:
     void on_return_PB_clicked();
 
     void on_renameFile_PB_clicked();
+
+    void on_moveFile_PB_clicked();
 
 private:
     Ui::File *ui;

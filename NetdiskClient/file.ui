@@ -34,8 +34,8 @@
      </item>
      <item>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QPushButton" name="flushFile_PB">
+       <item row="2" column="1">
+        <widget class="QPushButton" name="shareFile_PB">
          <property name="font">
           <font>
            <family>Agency FB</family>
@@ -43,46 +43,7 @@
           </font>
          </property>
          <property name="text">
-          <string>刷新文件</string>
-         </property>
-        </widget>
-       </item>
-       <item row="0" column="1">
-        <widget class="QPushButton" name="return_PB">
-         <property name="font">
-          <font>
-           <family>Agency FB</family>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>返回上一级</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="mkdir_PB">
-         <property name="font">
-          <font>
-           <family>Agency FB</family>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>创建文件夹</string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="1">
-        <widget class="QPushButton" name="renameFile_PB">
-         <property name="font">
-          <font>
-           <family>Agency FB</family>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>重命名</string>
+          <string>分享文件</string>
          </property>
         </widget>
        </item>
@@ -99,8 +60,8 @@
          </property>
         </widget>
        </item>
-       <item row="2" column="1">
-        <widget class="QPushButton" name="shareFile_PB">
+       <item row="4" column="1">
+        <widget class="QPushButton" name="uploadFile_PB">
          <property name="font">
           <font>
            <family>Agency FB</family>
@@ -108,7 +69,33 @@
           </font>
          </property>
          <property name="text">
-          <string>分享文件</string>
+          <string>上传文件</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QPushButton" name="return_PB">
+         <property name="font">
+          <font>
+           <family>Agency FB</family>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>返回上一级</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QPushButton" name="renameFile_PB">
+         <property name="font">
+          <font>
+           <family>Agency FB</family>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>重命名</string>
          </property>
         </widget>
        </item>
@@ -138,6 +125,32 @@
          </property>
         </widget>
        </item>
+       <item row="0" column="0">
+        <widget class="QPushButton" name="flushFile_PB">
+         <property name="font">
+          <font>
+           <family>Agency FB</family>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>刷新文件</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="0">
+        <widget class="QPushButton" name="mkdir_PB">
+         <property name="font">
+          <font>
+           <family>Agency FB</family>
+           <pointsize>12</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>创建文件夹</string>
+         </property>
+        </widget>
+       </item>
        <item row="4" column="0">
         <widget class="QPushButton" name="moveFile_PB">
          <property name="font">
@@ -148,19 +161,6 @@
          </property>
          <property name="text">
           <string>移动文件</string>
-         </property>
-        </widget>
-       </item>
-       <item row="4" column="1">
-        <widget class="QPushButton" name="uploadFile_PB">
-         <property name="font">
-          <font>
-           <family>Agency FB</family>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="text">
-          <string>上传文件</string>
          </property>
         </widget>
        </item>

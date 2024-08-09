@@ -13,7 +13,7 @@ public:
     // 处理注册响应
     void regist();
     // 处理登录响应
-    void login(QString& loginName);
+    void login();
     // 处理查找用户响应
     void findUser();
     // 处理在线用户响应
@@ -49,6 +49,13 @@ public:
 
     // 重命名文件
     void renameFile();
+
+    // 移动文件时的刷新文件响应
+    void moveFlushFile();
+
+    // 移动文件响应
+    void moveFile();
+
 
     PDU* m_pdu;
 signals:

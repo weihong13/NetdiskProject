@@ -28,7 +28,7 @@ void ResHandler::regist()
 }
 
 // 登录响应
-void ResHandler::login(QString &loginName)
+void ResHandler::login()
 {
     // 将消息取出
     bool ret;
@@ -38,15 +38,19 @@ void ResHandler::login(QString &loginName)
     // 根据返回的响应进行处理
     if(ret)
     {
-        loginName = caName;
-        qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<loginName;
+        Client::getInstance().getLoginName() = caName;
+        qDebug()<<"recvMsg LOGIN_REQUEST m_userName"<<Client::getInstance().getLoginName();
         QMessageBox::information(&Client::getInstance(),"登录","登录成功");
+
         // 隐藏登录界面
         Client::getInstance().hide();
+        qDebug()<<"recvMsg Client hide";
         // 登录成功后，跳转到首页
         Index::getInstance().show();
+        qDebug()<<"recvMsg Index show";
         // 登录成功后，刷新好友列表
         Index::getInstance().getFriend()->flushFriendReq();
+        qDebug()<<"recvMsg login flushFriendReq";
 
 
     }
@@ -147,9 +151,10 @@ void ResHandler::onlineUser(QString &loginName)
 // 处理其他客户发来的添加好友请求
 void ResHandler::addFriendReq()
 {
+    // 取出Cur客户端的用户名
     char curName[32] = {'\0'};
     memcpy(curName,m_pdu->caData,32);
-    int ret =  QMessageBox::question(Index::getInstance().getFriend(),"添加好友",QString("是否同意 %1 的添加好友请求？").arg(curName),"同意添加","取消");
+    int ret =  QMessageBox::question(Index::getInstance().getFriend(),"添加好友",QString("是否同意 %1 的添加好友请求？").arg(curName),"同意添加","拒绝添加");
     if(ret == 0)
     {
         qDebug()<<"ResHandler addFriendRequest QMessageBox::Yes";
@@ -319,6 +324,10 @@ void ResHandler::mkdir()
         QMessageBox::information(&Index::getInstance(),"创建文件夹","创建成功！");
         // 创建文件夹成功后，调用刷新文件请求
         Index::getInstance().getFile()->flushFileReq();
+        if(!Index::getInstance().getFile()->m_moveFile->isHidden())
+        {
+            Index::getInstance().getFile()->m_moveFile->flushFileReq();
+        }
         return;
     }
     else
@@ -396,14 +405,50 @@ void ResHandler::renameFile()
     bool ret;
     memcpy(&ret,m_pdu->caData,sizeof (bool));
 
-    if(ret)
-    {
-         QMessageBox::information(Index::getInstance().getFile(),"重命名文件","重命名文件成功");
-    }
-    else
+    if(!ret)
     {
         QMessageBox::information(Index::getInstance().getFile(),"重命名文件","重命名文件失败");
     }
+    Index::getInstance().getFile()->flushFileReq();
+}
+
+// 移动文件时的刷新文件响应
+void ResHandler::moveFlushFile()
+{
+    // 计算文件信息列表的大小
+    int FileListCount = m_pdu->uiMsgLen/sizeof (FileInfo);
+
+    QList<FileInfo*> fileList;
+
+    // 挨个将每个文件的信息，放到 fileList列表中
+    for(int i = 0; i<FileListCount; i++)
+    {
+        FileInfo* pFileInfo = new FileInfo;
+        memcpy(pFileInfo,m_pdu->caMsg+i*sizeof (FileInfo),sizeof (FileInfo));
+        // 测试 打印每个文件的文件名
+        qDebug()<<"ResHandler flushFile pFileInfo caFileName"<<pFileInfo->caFileName;
+        // 将每个文件的文件信息结构体添加到 列表中
+        fileList.append(pFileInfo);
+    }
+    // 调用移动文件的更新文件列表框的函数
+    Index::getInstance().getFile()->m_moveFile->updateFileList(fileList);
+}
+
+// 移动文件响应
+void ResHandler::moveFile()
+{
+    // 取出重命名文件响应的返回值
+    bool ret;
+    memcpy(&ret,m_pdu->caData,sizeof (bool));
+    if(ret)
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"移动文件","移动文件成功");
+    }
+    else
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"移动文件","移动文件失败");
+    }
+    Index::getInstance().getFile()->m_moveFile->close();
     Index::getInstance().getFile()->flushFileReq();
 }
 

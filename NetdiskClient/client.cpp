@@ -101,6 +101,7 @@ QString Client::getRootPath()
 // 实现静态成员函数 获取单例对象
 Client &Client::getInstance()
 {
+
     // 返回静态局部引用对象，防止调用拷贝构造，静态变量只能赋值一次
     // 在C++11之后，默认支持线程安全
     static Client instance;
@@ -169,7 +170,7 @@ void Client::handleRes(PDU *pdu)
         // 登录响应
         case ENUM_MSG_TYPE_LOGIN_RESPOND:
         {
-            m_rh->login(m_LoginName);
+            m_rh->login();
             break;
         }
 
@@ -247,7 +248,18 @@ void Client::handleRes(PDU *pdu)
             m_rh->renameFile();
             break;
         }
-
+        // 移动文件时的刷新文件夹的响应
+        case ENUM_MSG_TYPE_MOVE_FLUSH_FILE_RESPOND:
+        {
+            m_rh->moveFlushFile();
+            break;
+        }
+        // 移动文件时的刷新文件夹的响应
+        case ENUM_MSG_TYPE_MOVE_FILE_RESPOND:
+        {
+            m_rh->moveFile();
+            break;
+        }
 
 
         default:
