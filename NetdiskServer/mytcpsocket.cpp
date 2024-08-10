@@ -143,6 +143,17 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->moveFile();
         }
+        // 上传文件的请求
+        case ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST:
+        {
+            return m_rh->uploadFile();
+        }
+
+        // 上传文件数据的请求
+        case ENUM_MSG_TYPE_UPLOAD_FILE_DATA_REQUEST:
+        {
+            return m_rh->uploadFileData();
+        }
 
         default:
             break;

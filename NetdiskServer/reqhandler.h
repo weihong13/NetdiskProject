@@ -3,6 +3,7 @@
 
 #include "protocol.h"
 
+#include <QFile>
 #include <QObject>
 
 class ReqHandler : public QObject
@@ -54,11 +55,26 @@ public:
     // 移动文件
     PDU* moveFile();
 
+    // 上传文件
+    PDU* uploadFile();
+
+    // 上传文件中的数据
+    PDU* uploadFileData();
+
 
     PDU* m_pdu;
 
-
 signals:
+
+private:
+    // 是否正在上传
+    bool m_bUpload;
+    // 上传路径
+    QFile m_uploadPath;
+    // 文件总大小
+    qint64 m_uploadFileSize;
+    // 已经接收的大小
+    qint64 m_uploadRecvSize;
 
 };
 

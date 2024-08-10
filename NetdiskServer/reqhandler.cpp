@@ -9,7 +9,7 @@
 
 ReqHandler::ReqHandler(QObject *parent) : QObject(parent)
 {
-
+    m_bUpload = false;
 }
 
 PDU *ReqHandler::regist()
@@ -167,7 +167,7 @@ PDU *ReqHandler::addFriendReq()
 
 }
 
-// 处理 是否同意添加好友的请求
+// 处理 添加好友的响应
 void ReqHandler::addFriendRes()
 {
     // 取出用户名，以及目标用户的态度
@@ -186,37 +186,22 @@ void ReqHandler::addFriendRes()
     if(ret==1)
     {
         // 目标用户同意添加好友
-        // 建立好友关系
+        // 调用数据库操作类中，处理同意添加好友的函数，得到是否成功插入数据
         int res = OperateDB::getInstance().handleAddFriendAgree(curName,tarName);
 
-        // 构建发回当前用户的pdu
-        PDU* curPdu = initPDU(sizeof(int));
-        curPdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
-
-        memcpy(curPdu->caData,curName,32);
-        memcpy(curPdu->caData+32,tarName,32);
-        // 将消息存储到消息结构体
-        memcpy(curPdu->caMsg,&res,sizeof(int));
-        // 转发添加响应
-        MyTcpServer::getInstance().resend(curName,curPdu);
-
-        // 构建发回目标用户的pdu
-        PDU* tarPdu = initPDU(sizeof(int));
-        tarPdu->uiMsgType = ENUM_MSG_TYPE_ADD_FRIEND_RESPOND;
-        // 将消息存储到消息结构体
-        memcpy(tarPdu->caData,tarName,32);
-        memcpy(tarPdu->caData+32,curName,32);
-        memcpy(tarPdu->caMsg,&res,sizeof(int));
-
-        // 将添加结果转发回目标用户
-        MyTcpServer::getInstance().resend(tarName,tarPdu);
+        // 将得到的返回值，存储到消息结构体
+        memcpy(m_pdu->caMsg,&res,sizeof(int));
+        // 向Cur客户端转发添加响应
+        MyTcpServer::getInstance().resend(curName,m_pdu);
 
 
-        // 释放
-        free(curPdu);
-        curPdu = NULL;
-        free(tarPdu);
-        tarPdu = NULL;
+        // 调换Cur用户名与Tar客户端用户名的位置
+        memcpy(m_pdu->caData,tarName,32);
+        memcpy(m_pdu->caData+32,curName,32);
+
+        // 将结果转发回目标用户
+        MyTcpServer::getInstance().resend(tarName,m_pdu);
+
     }
     else
     {
@@ -573,6 +558,87 @@ PDU *ReqHandler::moveFile()
 
     return resPdu;
 
+}
+
+// 上传文件
+PDU *ReqHandler::uploadFile()
+{
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND;
+    int ret = 0;
+
+    if(m_bUpload)
+    {
+        ret = 1;
+        qDebug()<<"ReqHandler uploadFile m_bUpload";
+        memcpy(resPdu->caData,&ret,sizeof (int));
+        return resPdu;
+    }
+    // 获取文件名的长度
+    int fileNameLen;
+    memcpy(&fileNameLen,m_pdu->caData,sizeof (int));
+    // 获取当前路径长度
+    int curPathLen = m_pdu->uiMsgLen -fileNameLen;
+
+    // 获取文件名称
+    char* fileName = new char[fileNameLen+1];
+    memset(fileName,'\0',fileNameLen+1);
+    memcpy(fileName,m_pdu->caMsg,fileNameLen);
+    // 获取当前路径
+    char* curPath = new char[curPathLen];
+    memset(curPath,'\0',curPathLen);
+    memcpy(curPath,m_pdu->caMsg+fileNameLen,curPathLen);
+
+    // 拼接文件的路径
+    QString strFilePath = QString("%1/%2").arg(curPath).arg(fileName);
+    qDebug()<<"ReqHandler uploadFile strFilePath"<<strFilePath;
+    // 设置文件路径
+    m_uploadPath.setFileName(strFilePath);
+
+    // 获取文件大小
+    qint64 fileSize;
+    memcpy(&fileSize,m_pdu->caData+32,sizeof (qint64));
+    if(m_uploadPath.open(QIODevice::WriteOnly))
+    {
+        // 设置上传信息
+        m_bUpload = true;
+        m_uploadFileSize = fileSize;
+        m_uploadRecvSize = 0;
+
+    }
+    else
+    {
+        ret = -1;
+    }
+    qDebug()<<"ReqHandler uploadFile res"<<ret;
+    memcpy(resPdu->caData,&ret,sizeof (int));
+    return resPdu;
+}
+
+// 上传文件中的数据
+PDU *ReqHandler::uploadFileData()
+{
+    // 将caMsg中的数据 写入文件，更新已接收数据的大小
+    // 判断是否接收完毕，上传完成响应，关闭文件，更新上传状态
+
+    m_uploadPath.write(m_pdu->caMsg,m_pdu->uiMsgLen);
+    m_uploadRecvSize += m_pdu->uiMsgLen;
+    qDebug()<<"ReqHandler uploadFileData m_uploadRecvSize"<<m_uploadRecvSize;
+    if(m_uploadRecvSize < m_uploadFileSize)
+    {
+        // 没接收完，返回null，接着等待接收
+        return NULL;
+    }
+    // 如果接收完了，就会执行下面的内容
+    m_uploadPath.close();
+    m_bUpload = false;
+    // 构建响应的pdu
+    PDU* resPdu = initPDU(0);
+    // 判断一些接收的文件大小，与实际文件大小是否一致
+    bool ret = (m_uploadRecvSize == m_uploadFileSize);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_DATA_RESPOND;
+    memcpy(resPdu->caData,&ret,sizeof (bool));
+    return resPdu;
 }
 
 
