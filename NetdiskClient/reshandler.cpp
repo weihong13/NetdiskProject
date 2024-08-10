@@ -452,6 +452,48 @@ void ResHandler::moveFile()
     Index::getInstance().getFile()->flushFileReq();
 }
 
+// 上传文件响应
+void ResHandler::uploadFile()
+{
+    // 上传文件响应的返回值
+    int ret;
+    memcpy(&ret,m_pdu->caData,sizeof (int));
+    if(ret == 0)
+    {
+        qDebug()<<"1111";
+        Index::getInstance().getFile()->uploadFileData();
+        qDebug()<<"2222";
+    }
+    else if(ret == 1)
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"上传文件","当前已有文件在上传");
+    }
+    else
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"上传文件","打开文件失败");
+    }
+
+}
+
+// 上传文件数据的响应
+void ResHandler::uploadFileData()
+{
+    // 取出重命名文件响应的返回值
+    bool ret;
+    memcpy(&ret,m_pdu->caData,sizeof (bool));
+    if(ret)
+    {    qDebug()<<"ResHandler uploadFileData ret 1";
+        QMessageBox::information(Index::getInstance().getFile(),"上传文件","上传文件成功");
+        Index::getInstance().getFile()->flushFileReq();
+    }
+    else
+    {
+        qDebug()<<"ResHandler uploadFileData ret 0";
+        QMessageBox::information(Index::getInstance().getFile(),"上传文件","上传文件失败");
+    }
+    Index::getInstance().getFile()->getUpload() = false;
+}
+
 
 
 

@@ -260,6 +260,18 @@ void Client::handleRes(PDU *pdu)
             m_rh->moveFile();
             break;
         }
+        // 上传文件的响应
+        case ENUM_MSG_TYPE_UPLOAD_FILE_RESPOND:
+        {
+            m_rh->uploadFile();
+            break;
+        }
+        // 上传文件数据的响应
+        case ENUM_MSG_TYPE_UPLOAD_FILE_DATA_RESPOND:
+        {
+            m_rh->uploadFileData();
+            break;
+        }
 
 
         default:

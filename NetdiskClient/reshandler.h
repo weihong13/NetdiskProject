@@ -56,6 +56,12 @@ public:
     // 移动文件响应
     void moveFile();
 
+    // 上传文件响应
+    void uploadFile();
+
+    // 上传文件数据的响应
+    void uploadFileData();
+
 
     PDU* m_pdu;
 signals:

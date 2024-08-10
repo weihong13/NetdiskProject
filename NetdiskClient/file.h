@@ -25,8 +25,14 @@ public:
     // 刷新文件
     void flushFileReq();
 
+    // 获取文件上传状态
+    bool& getUpload();
+
     // 更新文件列表框的函数
     void updateFileList(QList<FileInfo*> fileList);
+
+    // 上传文件中的数据
+    void uploadFileData();
 
 
     QList<FileInfo*> m_fileInfoList;
@@ -51,12 +57,19 @@ private slots:
 
     void on_moveFile_PB_clicked();
 
+    void on_uploadFile_PB_clicked();
+
 private:
     Ui::File *ui;
     // 用户的根目录
     QString m_rootPath;
     // 用户的当前目录
     QString m_curPath;
+    // 是否正在上传
+    bool m_bUpload;
+    // 当前上传文件的路径
+    QString m_strUploadFilePath;
+
 
 };
 

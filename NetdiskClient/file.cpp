@@ -6,6 +6,7 @@
 
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QFileDialog>
 
 File::File(QWidget *parent) :
     QWidget(parent),
@@ -16,6 +17,7 @@ File::File(QWidget *parent) :
             .arg(Client::getInstance().getRootPath())
             .arg(Client::getInstance().getLoginName());
     m_curPath = m_rootPath;
+    m_bUpload = false;
 
     // 打开文件界面就刷新文件目录
     flushFileReq();
@@ -54,6 +56,11 @@ void File::flushFileReq()
 
 }
 
+bool &File::getUpload()
+{
+    return m_bUpload;
+}
+
 // 更新文件列表框的函数
 void File::updateFileList(QList<FileInfo*> fileList)
 {
@@ -89,6 +96,55 @@ void File::updateFileList(QList<FileInfo*> fileList)
     }
     // 展示新的文件列表框的内容
     ui->file_LW->show();
+
+}
+
+// 上传文件中的数据
+void File::uploadFileData()
+{
+    // 只读模式 打开要上传的文件
+    QFile file(m_strUploadFilePath);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        QMessageBox::warning(this,"上传文件","打开文件失败");
+        m_bUpload = false;
+        return;
+    }
+    // 将状态改为正在上传
+    m_bUpload = true;
+    // 构建数据pdu，默认实际消息大小为4096
+    PDU* dataPdu = initPDU(4096);
+    // 消息类型为 上传文件数据请求
+    dataPdu->uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_DATA_REQUEST;
+    // 循环读取文件中的数据，每次最多读4096
+    while(1)
+    {
+        // 读出文件中的内容
+        int readCount = file.read(dataPdu->caMsg,4096);
+        if(readCount == 0)
+        {
+            // 读取完成
+            break;
+        }
+        if(readCount < 0)
+        {
+            // 读取出错
+            QMessageBox::warning(this,"上传文件","上传文件失败：读取错误");
+            break;
+        }
+        // 修改实际消息大小 已经 pdu的长度（节省空间）
+        dataPdu->uiMsgLen = readCount;
+        dataPdu->uiPDULen = readCount+sizeof(PDU);
+        qDebug()<<"File uploadFileData uiMsgLen"<<dataPdu->uiMsgLen;
+        // 利用socket write发送数据。使用sendPDU的话，发送一次就被释放了，我们要一直发送
+        Client::getInstance().getTcpSocket().write((char*)dataPdu,dataPdu->uiPDULen);
+    }
+    qDebug()<<"File uploadFileData close";
+    // 所有内容都发送完成了
+    m_bUpload = false;
+    file.close();
+    free(dataPdu);
+    dataPdu = NULL;
 
 }
 
@@ -343,5 +399,45 @@ void File::on_moveFile_PB_clicked()
        m_moveFile->flushFileReq();
        m_moveFile->show();
     }
+
+}
+
+void File::on_uploadFile_PB_clicked()
+{
+   // 判断是否有文件在上传
+   if(m_bUpload)
+   {
+       QMessageBox::information(this,"上传文件","正在上传文件中，请稍后...");
+   }
+   // 选择要上传的文件
+   m_strUploadFilePath = QFileDialog::getOpenFileName();
+
+
+   // 获取要上传的文件名
+   int index = m_strUploadFilePath.lastIndexOf('/');
+   QString strFileName = m_strUploadFilePath.right(m_strUploadFilePath.toStdString().size()-index-1);
+   // 获取文件名的长度
+   int fileNameLen = strFileName.toStdString().size();
+   // 获取当前路径长度
+   int curPathLen = m_curPath.toStdString().size();
+
+   // 获取文件大小
+   QFile file(m_strUploadFilePath);
+   qint64 fileSize =  file.size();
+
+   PDU* pdu = initPDU(fileNameLen+curPathLen+1);
+   pdu->uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_REQUEST;
+   // 发送文件名长度，文件大小
+   memcpy(pdu->caData,&fileNameLen,sizeof(int));
+   memcpy(pdu->caData+32,&fileSize,sizeof(qint64));
+   // 发送文件名，当前路径
+   memcpy(pdu->caMsg,strFileName.toStdString().c_str(),fileNameLen);
+   memcpy(pdu->caMsg+fileNameLen,m_curPath.toStdString().c_str(),curPathLen);
+   // 测试
+   qDebug()<<"File uploadFile fileNameLen"<<fileNameLen;
+   qDebug()<<"File uploadFile fileSize"<<fileSize;
+   qDebug()<<"File uploadFile strFileName"<<strFileName;
+   qDebug()<<"File uploadFile m_curPath"<<m_curPath;
+   Client::getInstance().sendPDU(pdu);
 
 }
