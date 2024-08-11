@@ -18,6 +18,7 @@ File::File(QWidget *parent) :
             .arg(Client::getInstance().getLoginName());
     m_curPath = m_rootPath;
     m_bUpload = false;
+    m_bDownload = false;
 
     // 打开文件界面就刷新文件目录
     flushFileReq();
@@ -145,6 +146,65 @@ void File::uploadFileData()
     file.close();
     free(dataPdu);
     dataPdu = NULL;
+
+}
+
+// 发送下载数据的请求
+void File::downloadFile(qint64 fileSize)
+{
+    // 是否打开文件成功
+    bool ret = false;
+    // 设置下载的路径
+    m_downloadFile.setFileName(m_strDownloadFilePath);
+    // 打开文件
+    if(m_downloadFile.open(QIODevice::WriteOnly))
+    {
+        // 打开文件成功
+        ret = true;
+        m_bDownload = true;
+        m_downloadFileSize = fileSize;
+        m_downloadRecvSize = 0;
+        qDebug()<<"File downloadFile m_downloadFileSize"<<m_downloadFileSize;
+    }
+    else
+    {
+        QMessageBox::critical(this,"下载文件","下载文件时，打开失败");
+    }
+    // 发送请求 给服务器
+    qDebug()<<"File downloadFile m_bDownload"<<m_bDownload;
+    PDU* pdu = initPDU(0);
+    pdu->uiMsgType = ENUM_MSG_TYPE_DOWNLOAD_FILE_DATA_REQUEST;
+    memcpy(pdu->caData,&ret,sizeof(bool));
+    Client::getInstance().sendPDU(pdu);
+}
+// 下载文件中的数据
+void File::downloadFileData(char *buf, int size)
+{
+    // 将数据写入到文件中
+    m_downloadFile.write(buf,size);
+    // 计算已下载的数据大小
+    m_downloadRecvSize += size;
+    // 判断是否下载完成
+    if(m_downloadRecvSize < m_downloadFileSize)
+    {
+        return;
+    }
+    // 关闭文件
+    m_downloadFile.close();
+    // 改变下载状态
+    m_bDownload = false;
+    // 判断是否下载成功
+    if(m_downloadRecvSize == m_downloadFileSize)
+    {
+        QMessageBox::information(this,"下载文件","下载完成");
+        qDebug()<<"File downloadFile m_bDownload"<<m_bDownload;
+        return;
+    }
+    else
+    {
+        QMessageBox::information(this,"下载文件","下载失败");
+        return;
+    }
 
 }
 
@@ -408,6 +468,7 @@ void File::on_uploadFile_PB_clicked()
    if(m_bUpload)
    {
        QMessageBox::information(this,"上传文件","正在上传文件中，请稍后...");
+       return;
    }
    // 选择要上传的文件
    m_strUploadFilePath = QFileDialog::getOpenFileName();
@@ -439,5 +500,52 @@ void File::on_uploadFile_PB_clicked()
    qDebug()<<"File uploadFile strFileName"<<strFileName;
    qDebug()<<"File uploadFile m_curPath"<<m_curPath;
    Client::getInstance().sendPDU(pdu);
+
+}
+
+// 下载文件的按钮
+void File::on_downloadFile_PB_clicked()
+{
+    QListWidgetItem* pItem = ui->file_LW->currentItem();
+    if(pItem==NULL)
+    {
+        QMessageBox::information(this,"下载文件","请选择要下载的文件");
+        return;
+    }
+    if(m_bDownload)
+    {
+        QMessageBox::information(this,"下载文件","正在下载文件中，请稍后...");
+        return;
+    }
+    QString strDownloadFileName = pItem->text();
+    // 判断是否为文件
+    foreach(FileInfo* pFileInfo,m_fileInfoList)
+    {
+        if(pFileInfo->caFileName == strDownloadFileName && pFileInfo->uiFileType == ENUM_FILE_TYPE_FOLDER)
+        {
+            QMessageBox::information(this,"下载文件","请选择文件");
+            return;
+        }
+    }
+    m_strDownloadFilePath.clear();
+    // 获取要下载的位置
+    m_strDownloadFilePath = QFileDialog::getSaveFileName(this,"下载位置","C:\\Users\\Administrator\\Desktop");
+    qDebug()<<"File downloadFile_PB m_strDownloadFilePath"<<m_strDownloadFilePath;
+    if(m_strDownloadFilePath.isEmpty())
+    {
+        QMessageBox::information(this,"下载文件","请指定下载位置");
+        return;
+    }
+
+    // 获取文件的完整路径
+    QString strFilePath = QString("%1/%2").arg(m_curPath).arg(strDownloadFileName);
+
+
+    // 构建pdu
+    PDU* pdu = initPDU(strFilePath.toStdString().size()+1);
+    pdu->uiMsgType =ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST;
+    memcpy(pdu->caMsg,strFilePath.toStdString().c_str(),strFilePath.toStdString().size());
+    qDebug()<<"File downloadFile_PB pdu->caMsg"<<pdu->caMsg;
+    Client::getInstance().sendPDU(pdu);
 
 }

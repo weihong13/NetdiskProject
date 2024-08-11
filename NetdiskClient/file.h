@@ -3,6 +3,7 @@
 
 #include "movefile.h"
 
+#include <QFile>
 #include <QListWidgetItem>
 #include <QWidget>
 
@@ -34,6 +35,12 @@ public:
     // 上传文件中的数据
     void uploadFileData();
 
+    // 下载文件中的数据请求
+    void downloadFile(qint64 fileSize);
+
+    // 下载文件中的数据请求
+    void downloadFileData(char* buf,int size);
+
 
     QList<FileInfo*> m_fileInfoList;
     MoveFile* m_moveFile;
@@ -59,6 +66,8 @@ private slots:
 
     void on_uploadFile_PB_clicked();
 
+    void on_downloadFile_PB_clicked();
+
 private:
     Ui::File *ui;
     // 用户的根目录
@@ -69,6 +78,18 @@ private:
     bool m_bUpload;
     // 当前上传文件的路径
     QString m_strUploadFilePath;
+
+    // 当前是否有文件在下载
+    bool m_bDownload;
+    // 要下载到的本机地址
+    QString m_strDownloadFilePath;
+    // 下载文件的总大小
+    qint64 m_downloadFileSize;
+    // 已经接收的大小
+    qint64 m_downloadRecvSize;
+    // 打开的文件
+    QFile m_downloadFile;
+
 
 
 };

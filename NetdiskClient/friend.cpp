@@ -27,7 +27,7 @@ Friend::~Friend()
     delete ui;
 }
 
-
+// 展示好友列表
 void Friend::showFirend(QStringList nameList)
 {
     ui->friend_LW->clear();
@@ -105,18 +105,22 @@ void Friend::on_flushFriend_PB_clicked()
 // 删除好友的按钮
 void Friend::on_delFriend_PB_clicked()
 {
+   // 获取当前选中的值
    QListWidgetItem* pItem =  ui->friend_LW->currentItem();
    if(!pItem)
    {
+       // 当前没选中，进行提示
        QMessageBox::information(this,"删除好友","请选择你要删除的好友");
        return;
    }
+   // 获得要删除好友的用户名
    QString tarName = pItem->text();
-
+   // 再次询问是否要删除好友
    int ret = QMessageBox::critical(this,"删除好友",QString("是否要删除 %1 ?").arg(tarName),"确认删除","取消");
+
    if(ret == 0)
    {
-       qDebug()<<"确认删除";
+       // 确认删除，发送pdu
        PDU* pdu = initPDU(0);
        memcpy(pdu->caData,tarName.toStdString().c_str(),32);
        pdu->uiMsgType = ENUM_MSG_TYPE_DELETE_FRIEND_REQUEST;

@@ -273,6 +273,18 @@ void Client::handleRes(PDU *pdu)
             break;
         }
 
+        // 下载文件的响应
+        case ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND:
+        {
+            m_rh->downloadFile();
+            break;
+        }
+        // 下载文件数据的响应
+        case ENUM_MSG_TYPE_DOWNLOAD_FILE_DATA_RESPOND:
+        {
+            m_rh->downloadFileData();
+            break;
+        }
 
         default:
             break;

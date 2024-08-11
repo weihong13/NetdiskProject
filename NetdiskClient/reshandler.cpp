@@ -460,9 +460,8 @@ void ResHandler::uploadFile()
     memcpy(&ret,m_pdu->caData,sizeof (int));
     if(ret == 0)
     {
-        qDebug()<<"1111";
+        // 初始化上传成功，调用上传数据的函数
         Index::getInstance().getFile()->uploadFileData();
-        qDebug()<<"2222";
     }
     else if(ret == 1)
     {
@@ -492,6 +491,37 @@ void ResHandler::uploadFileData()
         QMessageBox::information(Index::getInstance().getFile(),"上传文件","上传文件失败");
     }
     Index::getInstance().getFile()->getUpload() = false;
+}
+
+// 下载文件的响应
+void ResHandler::downloadFile()
+{
+    // 上传文件响应的返回值
+    int ret;
+    memcpy(&ret,m_pdu->caData,sizeof (int));
+    if(ret == 0)
+    {
+        qint64 fileSize;
+        memcpy(&fileSize,m_pdu->caData+32,sizeof (qint64));
+        qDebug()<<"ResHandler downloadFile fileSize"<<fileSize;
+        // 初始化下载成功，调用上传数据的函数
+        Index::getInstance().getFile()->downloadFile(fileSize);
+    }
+    else if(ret == 1)
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"下载文件","当前已有文件在下载");
+    }
+    else
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"下载文件","打开文件失败");
+    }
+}
+
+// 下载文件数据的响应
+void ResHandler::downloadFileData()
+{
+    // 将实际消息与实际消息大小发给 写入函数
+    Index::getInstance().getFile()->downloadFileData(m_pdu->caMsg,m_pdu->uiMsgLen);
 }
 
 

@@ -62,6 +62,12 @@ public:
     // 上传文件数据的响应
     void uploadFileData();
 
+    // 下载文件响应
+    void downloadFile();
+
+    // 下载文件数据的响应
+    void downloadFileData();
+
 
     PDU* m_pdu;
 signals:
