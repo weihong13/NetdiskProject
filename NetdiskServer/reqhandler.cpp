@@ -10,6 +10,7 @@
 ReqHandler::ReqHandler(QObject *parent) : QObject(parent)
 {
     m_bUpload = false;
+    m_bDownload = false;
 }
 
 PDU *ReqHandler::regist()
@@ -223,9 +224,9 @@ PDU *ReqHandler::flushFriend(QString& curName)
 
     // 向客户端发送响应
     // 初始化响应刷新好友的PDU对象
-    PDU* flushFriendPdu = initPDU(uiMsgLen);
+    PDU* resPdu = initPDU(uiMsgLen);
     // 消息类型为刷新好友的响应
-    flushFriendPdu->uiMsgType = ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND;
+    resPdu->uiMsgType = ENUM_MSG_TYPE_FLUSH_FRIEND_RESPOND;
 
 
     // 将用户名 挨个放到 caMsg中
@@ -235,10 +236,10 @@ PDU *ReqHandler::flushFriend(QString& curName)
         qDebug()<<"ReqHandler  flushFriend " << friendList.at(i);
 
         // 将每一个用户名都存储到 caMsg中
-        memcpy(flushFriendPdu->caMsg+i*32,friendList.at(i).toStdString().c_str(),32);
+        memcpy(resPdu->caMsg+i*32,friendList.at(i).toStdString().c_str(),32);
     }
 
-    return flushFriendPdu;
+    return resPdu;
 }
 
 PDU *ReqHandler::deleteFriend(QString &curName)
@@ -639,6 +640,96 @@ PDU *ReqHandler::uploadFileData()
     resPdu->uiMsgType = ENUM_MSG_TYPE_UPLOAD_FILE_DATA_RESPOND;
     memcpy(resPdu->caData,&ret,sizeof (bool));
     return resPdu;
+}
+
+// 下载文件请求
+PDU *ReqHandler::downloadFile()
+{
+    // 响应pdu
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_DOWNLOAD_FILE_RESPOND;
+    int res = 0;
+    if(m_bDownload)
+    {
+        // 判断是否已经在下载状态
+        res = 1;
+        memcpy(resPdu->caData,&res,sizeof(int));
+        return resPdu;
+    }
+
+    // 取出要下载的文件路径
+    QString strPath = QString(m_pdu->caMsg);
+    qDebug()<<"ReqHandler downloadFile strPath"<<strPath;
+
+    m_downloadPath.setFileName(strPath);
+    // 打开要传给客户端的文件
+    if(m_downloadPath.open(QIODevice::ReadOnly))
+    {
+        // 改变下载状态
+        m_bDownload = true;
+        qint64 fileSize =  m_downloadPath.size();
+        qDebug()<<"ReqHandler downloadFile fileSize"<<fileSize;
+        res = 0;
+        memcmp(resPdu->caData,&res,sizeof (int));
+        memcpy(resPdu->caData+32,&fileSize,sizeof(qint64));
+
+        return resPdu;
+
+    }
+    else
+    {
+        res = -1;
+        memcpy(resPdu->caData,&res,sizeof (int));
+        return resPdu;
+    }
+}
+
+// 下载文件数据的请求
+PDU *ReqHandler::downloadFileData(MyTcpSocket* mySocket)
+{
+    // 根据ret判断客户端是否能接收数据
+    bool ret;
+    memcpy(&ret,m_pdu->caData,sizeof (bool));
+    // 构建发送数据的pdu
+    PDU* resPdu = initPDU(4096);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_DOWNLOAD_FILE_DATA_RESPOND;
+    qint64 readCount = 0;
+
+    if(ret)
+    {   // 客户端可以接收数据，循环发送数据
+        while(true)
+        {
+            readCount = m_downloadPath.read(resPdu->caMsg,4096);
+            if(readCount == 0)
+            {
+                qDebug()<<"下载完成";
+                break;
+            }
+            else if(readCount < 0)
+            {
+                qDebug()<<"下载出错";
+                break;
+            }
+            resPdu->uiMsgLen = readCount;
+            resPdu->uiPDULen = readCount+sizeof (PDU);
+            mySocket->write((char*)resPdu,resPdu->uiPDULen);
+
+        }
+        // 发送完成后，关闭文件，修改下载状态
+        m_bDownload = false;
+        m_downloadPath.close();
+        free(resPdu);
+        resPdu = NULL;
+
+    }
+    else
+    {
+        // 客户端当前不能接收数据，关闭文件，修改下载状态
+        m_bDownload = false;
+        m_downloadPath.close();
+    }
+
+    return NULL;
 }
 
 

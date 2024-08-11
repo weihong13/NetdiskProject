@@ -1,10 +1,12 @@
 #ifndef REQHANDLER_H
 #define REQHANDLER_H
 
+
 #include "protocol.h"
 
 #include <QFile>
 #include <QObject>
+class MyTcpSocket;
 
 class ReqHandler : public QObject
 {
@@ -61,6 +63,11 @@ public:
     // 上传文件中的数据
     PDU* uploadFileData();
 
+    // 下载文件请求
+    PDU* downloadFile();
+
+    // 下载文件数据请求
+    PDU* downloadFileData(MyTcpSocket* mySocket);
 
     PDU* m_pdu;
 
@@ -75,6 +82,11 @@ private:
     qint64 m_uploadFileSize;
     // 已经接收的大小
     qint64 m_uploadRecvSize;
+
+    //
+    bool m_bDownload;
+    // 要下载文件的路径
+    QFile m_downloadPath;
 
 };
 

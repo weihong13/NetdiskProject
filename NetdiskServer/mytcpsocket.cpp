@@ -154,6 +154,16 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->uploadFileData();
         }
+        // 下载文件的请求
+        case ENUM_MSG_TYPE_DOWNLOAD_FILE_REQUEST:
+        {
+            return m_rh->downloadFile();
+        }
+        // 下载文件数据的请求
+        case ENUM_MSG_TYPE_DOWNLOAD_FILE_DATA_REQUEST:
+        {
+            return m_rh->downloadFileData(this);
+        }
 
         default:
             break;
