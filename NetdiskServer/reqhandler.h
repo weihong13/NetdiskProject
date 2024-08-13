@@ -69,6 +69,18 @@ public:
     // 下载文件数据请求
     PDU* downloadFileData(MyTcpSocket* mySocket);
 
+    // 分享文件请求
+    PDU* sharFile();
+
+    // 刷新文件
+    PDU* selectFlushFile();
+
+    // 同意分享文件
+    PDU* sharFileAgree();
+
+    // 复制文件夹
+    bool copyDir(QString strSrcDir,QString strDestDir);
+
     PDU* m_pdu;
 
 signals:

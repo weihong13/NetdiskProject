@@ -732,6 +732,185 @@ PDU *ReqHandler::downloadFileData(MyTcpSocket* mySocket)
     return NULL;
 }
 
+// 分享文件请求
+PDU* ReqHandler::sharFile()
+{
+    // 取出用户名以及好友数量
+    char curName[32] = {'\0'};
+    int friendNum;
+    memcpy(curName,m_pdu->caData,32);
+    memcpy(&friendNum,m_pdu->caData+32,sizeof (int));
+
+    // 按照分享文件的完整路径，构建转发的pdu
+    PDU* resendPdu = initPDU(m_pdu->uiMsgLen - friendNum*32);
+    resendPdu->uiMsgType = m_pdu->uiMsgType;
+    // 存入cur的用户名 以及 要分享的完整路径
+    memcpy(resendPdu->caData,curName,32);
+    memcpy(resendPdu->caMsg,m_pdu->caMsg+friendNum*32,m_pdu->uiMsgLen - friendNum*32);
+    // 存放转发目标用户名
+    char tarName[32] = {'\0'};
+    // 取出目标用户名，挨个转发
+    for(int i=0; i<friendNum; i++)
+    {
+        memcpy(tarName,m_pdu->caMsg+i*32,32);
+        qDebug()<<"ReqHandler sharFileReq "<<tarName;
+        MyTcpServer::getInstance().resend(tarName,resendPdu);
+    }
+    // 转发完成，释放转发pdu
+    free(resendPdu);
+    resendPdu = NULL;
+    // 构建响应pdu，发回cur客户端
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_SHARE_FILE_RESPOND;
+    return resPdu;
+}
+
+PDU *ReqHandler::selectFlushFile()
+{
+    // 获取当前路径
+    char curFile[m_pdu->uiMsgLen];
+    memcpy(curFile,m_pdu->caMsg,m_pdu->uiMsgLen);
+    QString strCurFile = QString(curFile);
+    qDebug()<<"ReqHandler flushFile strCurFile"<<strCurFile;
+
+    // 判空
+    if(strCurFile.isEmpty())
+    {
+        return NULL;
+    }
+    // 获取当前文件夹下的所以文件信息
+    QDir dir(strCurFile);
+    QFileInfoList fileInfoList =  dir.entryInfoList();
+    // 获取文件信息列表的大小
+    int fileInfoCount = fileInfoList.size();
+    qDebug()<<"ReqHandler flushFile fileInfoCount"<<fileInfoCount;
+
+    // 按照文件信息列表的大小，构建pdu
+    PDU* resPdu = initPDU(sizeof (FileInfo)*(fileInfoCount-2));
+    resPdu->uiMsgType = ENUM_MSG_TYPE_SELECT_FLUSH_FILE_RESPOND;
+    // 创建一个文件信息结构体
+    FileInfo* pFileInfo = NULL;
+
+    QString fileName;
+    // 挨个获取当前文件夹下的每个文件的信息
+    for(int i = 0,j = 0; i < fileInfoCount; i++)
+    {
+        // 获取文件名
+        fileName = fileInfoList[i].fileName();
+        // 去除 . 和 .. 文件
+        if(fileName == QString(".") || fileName == QString("..")) continue;
+        qDebug()<<"ReqHandler flushFile fileName"<<fileName;
+        // 将char* 类型的caMsg 转换为 FileInfo*
+        pFileInfo = (FileInfo*)resPdu->caMsg + (j++);
+        // 将文件名 存放到 caMsg中
+        memcpy(pFileInfo->caFileName,fileName.toStdString().c_str(),32);
+        // 存放 文件类型
+        if(fileInfoList[i].isDir())
+        {
+            pFileInfo->uiFileType = ENUM_FILE_TYPE_FOLDER;
+        }
+        else if(fileInfoList[i].isFile())
+        {
+            pFileInfo->uiFileType = ENUM_FILE_TYPE_TXT;
+        }
+
+    }
+
+    return resPdu;
+}
+
+PDU *ReqHandler::sharFileAgree()
+{
+    // 获取路径长度
+    int srcLen;
+    int tarLen;
+    memcpy(&srcLen,m_pdu->caData,sizeof(int));
+    memcpy(&tarLen,m_pdu->caData+32,sizeof(int));
+    // 获取路径
+    char* srcPath = new char[srcLen+1];
+    char* tarPath = new char[tarLen+1];
+    // 将内容设为 '\0' 防止申请的空间存在不干净的数据
+    memset(srcPath,'\0',srcLen+1);
+    memset(tarPath,'\0',tarLen+1);
+
+    memcpy(srcPath,m_pdu->caMsg,srcLen);
+    memcpy(tarPath,m_pdu->caMsg+srcLen,tarLen);
+
+    // 测试
+    qDebug()<<"ReqHandler moveFile strSrcPath"<<srcPath;
+    qDebug()<<"ReqHandler moveFile strTarPath"<<tarPath;
+
+    QFileInfo fileInfo(srcPath);
+
+    bool ret = false;
+    // 判断分享的文件是不是文件
+    if(fileInfo.isFile())
+    {
+        ret = QFile::copy(srcPath,tarPath);
+    }
+    // 判断分享的文件是不是文件夹
+    else if(fileInfo.isDir())
+    {
+        ret = copyDir(srcPath,tarPath);
+    }
+
+
+    // 构建响应pdu
+    PDU* resPdu = initPDU(0);
+    resPdu->uiMsgType = ENUM_MSG_TYPE_SHARE_FILE_ARGEE_RESPOND;
+    memcpy(resPdu->caData,&ret,sizeof (bool));
+
+    delete[] srcPath;
+    srcPath = NULL;
+
+    delete[] tarPath;
+    tarPath = NULL;
+
+    return resPdu;
+}
+
+// 复制文件夹
+bool ReqHandler::copyDir(QString strSrcDir, QString strDestDir)
+{
+    QDir dir;
+    dir.mkdir(strDestDir);
+    dir.setPath(strSrcDir);
+    QFileInfoList fileInfolist =dir.entryInfoList();
+    bool ret = true;
+    QString srcTmp;
+    QString destTmp;
+    // 挨个处理文件夹中的文件
+    for (int i=0;i<fileInfolist.size();i++)
+    {
+         // 判断是文件
+         if (fileInfolist[i].isFile())
+         {
+             srcTmp = strSrcDir + '/' + fileInfolist[i].fileName();
+             destTmp= strDestDir+ '/' + fileInfolist[i].fileName();
+             if(!QFile::copy(srcTmp,destTmp))
+             {
+                 ret = false;
+             }
+         }
+         // 判断是文件夹，接着调用自身
+         else if(fileInfolist[i].isDir())
+         {
+             if(fileInfolist[i].fileName()== QString(".") || fileInfolist[i].fileName()== QString(".."))
+             {
+                 continue;
+             }
+             srcTmp = strSrcDir +'/'+ fileInfolist[i].fileName();
+             destTmp =strDestDir+'/'+ fileInfolist[i].fileName();
+             if(!copyDir(srcTmp,destTmp))
+             {
+                 ret = false;
+             }
+         }
+    }
+    return ret;
+}
+
+
 
 
 

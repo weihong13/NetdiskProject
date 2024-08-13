@@ -164,7 +164,21 @@ PDU *MyTcpSocket::handleReq(PDU *pdu)
         {
             return m_rh->downloadFileData(this);
         }
-
+        // 移动文件的请求
+        case ENUM_MSG_TYPE_SHARE_FILE_REQUEST:
+        {
+            return m_rh->sharFile();
+        }
+        // 选择文件的刷新请求
+        case ENUM_MSG_TYPE_SELECT_FLUSH_FILE_REQUEST:
+        {
+            return m_rh->selectFlushFile();
+        }
+        // 选择文件的刷新请求
+        case ENUM_MSG_TYPE_SHARE_FILE_ARGEE_REQUEST:
+        {
+            return m_rh->sharFileAgree();
+        }
         default:
             break;
     }
