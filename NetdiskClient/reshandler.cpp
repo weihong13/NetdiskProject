@@ -321,12 +321,16 @@ void ResHandler::mkdir()
     memcpy(&ret,m_pdu->caData,sizeof(bool));
     if(ret)
     {
-        QMessageBox::information(&Index::getInstance(),"创建文件夹","创建成功！");
-        // 创建文件夹成功后，调用刷新文件请求
+        QMessageBox::information(Index::getInstance().getFile(),"创建文件夹","创建成功！");
         Index::getInstance().getFile()->flushFileReq();
+        // 判断移动文件界面 和 选择路径界面是否开启，开启就需要刷新
         if(!Index::getInstance().getFile()->m_moveFile->isHidden())
         {
             Index::getInstance().getFile()->m_moveFile->flushFileReq();
+        }
+        if(!Index::getInstance().getFile()->m_selectPath->isHidden())
+        {
+            Index::getInstance().getFile()->m_selectPath->flushFileReq();
         }
         return;
     }
@@ -522,6 +526,87 @@ void ResHandler::downloadFileData()
 {
     // 将实际消息与实际消息大小发给 写入函数
     Index::getInstance().getFile()->downloadFileData(m_pdu->caMsg,m_pdu->uiMsgLen);
+}
+
+// 分享文件请求
+void ResHandler::shareFileReq()
+{
+    // 取出用户名和文件路径
+    char curName[32] = {'\0'};
+    memcpy(curName,m_pdu->caData,32);
+    QString strFilePath = QString(m_pdu->caMsg);
+    // 获得文件名
+    int index = strFilePath.lastIndexOf('/');
+    QString strFileName = strFilePath.right(strFilePath.size()-index -1);
+    // 询问是否接收
+    QString msg = QString("%1 分享文件：%2\n是否接收？").arg(m_pdu->caData).arg(strFileName);
+
+    int ret = QMessageBox::question(Index::getInstance().getFile(),"分享文件",msg);
+    // 不接收
+    if(ret != QMessageBox::Yes)
+    {
+        return;
+    }
+    // 接收
+    // 给选择保存路径的成员变量赋值
+    Index::getInstance().getFile()->m_selectPath->m_fileName = strFileName;
+    Index::getInstance().getFile()->m_selectPath->m_sharePath = strFilePath;
+    // 显示选择保存位置的界面
+    if(Index::getInstance().getFile()->m_selectPath->isHidden())
+    {
+        Index::getInstance().getFile()->m_selectPath->setWindowTitle("选择文件保存位置");
+        Index::getInstance().getFile()->m_selectPath->setWindowModality(Qt::ApplicationModal);
+        Index::getInstance().getFile()->m_selectPath->flushFileReq();
+        Index::getInstance().getFile()->m_selectPath->show();
+    }
+
+}
+
+// 分享文件响应，是否分享成功
+void ResHandler::shareFileRes()
+{
+    QMessageBox::information(Index::getInstance().getFile(),"分享文件","分享成功");
+    Index::getInstance().getFile()->m_shareFile->close();
+}
+
+// 同意接收分享文件的响应
+void ResHandler::shareFileAgree()
+{
+    // 取出重命名文件响应的返回值
+    bool ret;
+    memcpy(&ret,m_pdu->caData,sizeof (bool));
+    if(ret)
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"保存文件","保存文件成功");
+    }
+    else
+    {
+        QMessageBox::information(Index::getInstance().getFile(),"保存文件","保存文件失败");
+    }
+    Index::getInstance().getFile()->m_selectPath->close();
+    Index::getInstance().getFile()->flushFileReq();
+}
+
+// 文件时的刷新文件响应
+void ResHandler::selectFlushFile()
+{
+    // 计算文件信息列表的大小
+    int FileListCount = m_pdu->uiMsgLen/sizeof (FileInfo);
+
+    QList<FileInfo*> fileList;
+
+    // 挨个将每个文件的信息，放到 fileList列表中
+    for(int i = 0; i<FileListCount; i++)
+    {
+        FileInfo* pFileInfo = new FileInfo;
+        memcpy(pFileInfo,m_pdu->caMsg+i*sizeof (FileInfo),sizeof (FileInfo));
+        // 测试 打印每个文件的文件名
+        qDebug()<<"ResHandler selectFlushFile pFileInfo caFileName"<<pFileInfo->caFileName;
+        // 将每个文件的文件信息结构体添加到 列表中
+        fileList.append(pFileInfo);
+    }
+    // 调用移动文件的更新文件列表框的函数
+    Index::getInstance().getFile()->m_selectPath->updateFileList(fileList);
 }
 
 

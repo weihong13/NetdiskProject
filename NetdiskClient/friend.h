@@ -22,6 +22,8 @@ public:
     void flushFriendReq();
 
     void showFirend(QStringList nameList);
+    // 获取好友列表
+    QListWidget* getFriend_LW();
 
     // 在线用户的界面是属于 friend界面的
     // 因此要添加一个OnlineUser类 成员变量

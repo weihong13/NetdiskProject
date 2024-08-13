@@ -285,6 +285,31 @@ void Client::handleRes(PDU *pdu)
             m_rh->downloadFileData();
             break;
         }
+        // 分享的请求
+        case ENUM_MSG_TYPE_SHARE_FILE_REQUEST:
+        {
+            m_rh->shareFileReq();
+            break;
+        }
+        // 分享文件的响应
+        case ENUM_MSG_TYPE_SHARE_FILE_RESPOND:
+        {
+            m_rh->shareFileRes();
+            break;
+        }
+        // 选择文件时刷新的响应
+        case ENUM_MSG_TYPE_SELECT_FLUSH_FILE_RESPOND:
+        {
+            m_rh->selectFlushFile();
+            break;
+        }
+        // 分享文件的响应
+        case ENUM_MSG_TYPE_SHARE_FILE_ARGEE_RESPOND:
+        {
+            m_rh->shareFileAgree();
+            break;
+        }
+
 
         default:
             break;

@@ -2,6 +2,8 @@
 #define FILE_H
 
 #include "movefile.h"
+#include "selectpath.h"
+#include "sharefile.h"
 
 #include <QFile>
 #include <QListWidgetItem>
@@ -41,11 +43,15 @@ public:
     // 下载文件中的数据请求
     void downloadFileData(char* buf,int size);
 
-
+    // 文件信息列表
     QList<FileInfo*> m_fileInfoList;
+    // 移动文件的界面
     MoveFile* m_moveFile;
+    // 分享文件的界面
+    ShareFile* m_shareFile;
 
-
+    // 选择路径的界面
+    SelectPath* m_selectPath;
 
 private slots:
     void on_mkdir_PB_clicked();
@@ -67,6 +73,8 @@ private slots:
     void on_uploadFile_PB_clicked();
 
     void on_downloadFile_PB_clicked();
+
+    void on_shareFile_PB_clicked();
 
 private:
     Ui::File *ui;

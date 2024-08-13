@@ -68,6 +68,19 @@ public:
     // 下载文件数据的响应
     void downloadFileData();
 
+    // 分享文件请求
+    void shareFileReq();
+    // 分享文件响应
+    void shareFileRes();
+
+    // 同意接收分享文件的响应
+    void shareFileAgree();
+    // 移动文件时的刷新文件响应
+    void selectFlushFile();
+
+
+
+
 
     PDU* m_pdu;
 signals:

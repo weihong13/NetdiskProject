@@ -35,6 +35,11 @@ void Friend::showFirend(QStringList nameList)
 
 }
 
+QListWidget *Friend::getFriend_LW()
+{
+    return ui->friend_LW;
+}
+
 
 
 // 查找用户的槽函数

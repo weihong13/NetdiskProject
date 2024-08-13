@@ -24,6 +24,8 @@ File::File(QWidget *parent) :
     flushFileReq();
 
     m_moveFile =  new MoveFile;
+    m_shareFile = new ShareFile;
+    m_selectPath = new SelectPath;
     qDebug()<<"File m_rootPath"<<m_rootPath;
     qDebug()<<"File m_curPath"<<m_curPath;
 
@@ -32,6 +34,8 @@ File::File(QWidget *parent) :
 File::~File()
 {
     if(!m_moveFile) delete m_moveFile;
+    if(!m_shareFile) delete m_shareFile;
+    if(!m_selectPath) delete m_selectPath;
     delete ui;
 }
 
@@ -547,5 +551,29 @@ void File::on_downloadFile_PB_clicked()
     memcpy(pdu->caMsg,strFilePath.toStdString().c_str(),strFilePath.toStdString().size());
     qDebug()<<"File downloadFile_PB pdu->caMsg"<<pdu->caMsg;
     Client::getInstance().sendPDU(pdu);
+
+}
+
+// 分享文件
+void File::on_shareFile_PB_clicked()
+{
+    // 取出选择的文件
+    QListWidgetItem* pItem = ui->file_LW->currentItem();
+    if(pItem==NULL)
+    {
+        QMessageBox::information(this,"分享文件","请选择要分享的文件");
+        return;
+    }
+    // 获得选中的文件名
+    QString strShareFileName = pItem->text();
+    // 给 分享文件的成员变量赋值
+    m_shareFile->m_shareFileName = strShareFileName;
+    m_shareFile->m_sharPath = m_curPath;
+    // 显示分享文件 选择好友的界面
+    if(m_shareFile->isHidden())
+    {
+        m_shareFile->showFriend_LW();
+        m_shareFile->show();
+    }
 
 }

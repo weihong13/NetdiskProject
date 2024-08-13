@@ -26,7 +26,9 @@ SOURCES += \
     onlineuser.cpp \
     protocol.cpp \
     qnchatmessage.cpp \
-    reshandler.cpp
+    reshandler.cpp \
+    selectpath.cpp \
+    sharefile.cpp
 
 HEADERS += \
     chat.h \
@@ -38,7 +40,9 @@ HEADERS += \
     onlineuser.h \
     protocol.h \
     qnchatmessage.h \
-    reshandler.h
+    reshandler.h \
+    selectpath.h \
+    sharefile.h
 
 FORMS += \
     chat.ui \
@@ -47,7 +51,9 @@ FORMS += \
     friend.ui \
     index.ui \
     movefile.ui \
-    onlineuser.ui
+    onlineuser.ui \
+    selectpath.ui \
+    sharefile.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
