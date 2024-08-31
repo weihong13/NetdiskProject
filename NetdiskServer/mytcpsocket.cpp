@@ -6,11 +6,6 @@ MyTcpSocket::MyTcpSocket()
     // 新建一个消息处理器成员
     m_rh = new ReqHandler();
 
-    // 将socket中，接收到信息触发的信号，与取出信息的信号槽函数进行关联
-    connect(this,&MyTcpSocket::readyRead,this,&MyTcpSocket::recvMsg);
-
-    // 将socket中，接收客户端关闭的信号，与处理下线的槽函数进行关联
-    connect(this,&MyTcpSocket::disconnected,this,&MyTcpSocket::clientOffline);
 }
 
 MyTcpSocket::~MyTcpSocket()

@@ -30,6 +30,8 @@ private:
     MyTcpServer operator =(const MyTcpServer&) =delete;
     // 定义连接成功的客户端 socket 的列表
     QList<MyTcpSocket*> m_tcpSocketList;
+    // 线程池对象
+    QThreadPool m_threadPool;
 };
 
 #endif // MYTCPSERVER_H

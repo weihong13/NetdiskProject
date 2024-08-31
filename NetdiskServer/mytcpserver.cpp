@@ -1,3 +1,4 @@
+#include "clienttask.h"
 #include "mytcpserver.h"
 
 #include <QMessageBox>
@@ -5,7 +6,8 @@
 // 构造函数
 MyTcpServer::MyTcpServer()
 {
-
+    // 初始化线程池对象，最大线程数量为8
+    m_threadPool.setMaxThreadCount(8);
 }
 
 // 获取单例对象
@@ -30,6 +32,10 @@ void MyTcpServer::incomingConnection(qintptr handle)
 
     // 将 下线信号 和 删除已下线客户端socket的槽函数 进行关联
     connect(tcpSocket,&MyTcpSocket::offline,this,&MyTcpServer::deleteSocket);
+
+    // 线程池的创建
+    ClientTask *task = new ClientTask(tcpSocket);
+    m_threadPool.start(task);
 }
 
 // 转发函数，将pdu转发给，目标用户

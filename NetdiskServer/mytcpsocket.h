@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QTcpSocket>
+#include <QThreadPool>
 #include "protocol.h"
 #include "reqhandler.h"
 
@@ -43,6 +44,7 @@ signals:
 private:
     // 登陆成功的用户名
     QString m_LoginName;
+
 };
 
 #endif // MYTCPSOCKET_H
