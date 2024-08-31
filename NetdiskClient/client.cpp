@@ -1,6 +1,8 @@
 #include "client.h"
 #include "ui_client.h"
 #include "index.h"
+#include "uploader.h"
+#include "downloader.h"
 
 #include <QFile>
 #include <QMessageBox>
@@ -151,6 +153,86 @@ void Client::sendPDU(PDU *pdu)
         pdu=NULL;
     }
 
+}
+
+// 开始上传文件的函数
+void Client::startUpload()
+{
+    // 获取文件界面
+    File* file = Index::getInstance().getFile();
+    // 上传状态改为正在上传
+    file->m_bUpload = true;
+    // 构建文件上传对象
+    Uploader *uploader = new Uploader(file->m_strUploadFilePath);
+    // 绑定上传pdu与发送pdu
+    connect(uploader, &Uploader::uploadPDU, this, &Client::sendPDU);
+    // 绑定上传完成信号与上传完成函数
+    connect(uploader, &Uploader::finished, this, &Client::onUploadFinished);
+    // 打印错误的函数
+    connect(uploader, &Uploader::errorOccurred, this, &Client::printError);
+    // 启动线程
+    uploader->start();
+
+}
+
+// 完成上传的函数
+void Client::onUploadFinished()
+{
+    // 获取文件界面
+    File* file = Index::getInstance().getFile();
+    // 修改上传状态
+    file->m_bUpload = false;
+}
+
+// 开始下载文件的函数
+void Client::startDownload(qint64 downloadFileSize)
+{
+    // 获取文件界面
+    File* file = Index::getInstance().getFile();
+
+    // 构建文件下载对象
+    Downloader *downloder = new Downloader(file->m_strDownloadFilePath, downloadFileSize);
+    // 绑定下载pdu与发送pdu
+    connect(downloder, &Downloader::downloadPDU, this, &Client::sendPDU);
+    // 绑定下载完成信号与下载完成函数
+    connect(downloder, &Downloader::bDownload, this, &Client::bDownload);
+    // 绑定下载完成信号与下载完成函数
+    connect(downloder, &Downloader::finished, this, &Client::onDownloadFinished);
+    // 打印错误的函数
+    connect(downloder, &Downloader::errorOccurred, this, &Client::printError);
+    // 启动线程
+    downloder->start();
+
+}
+
+void Client::bDownload()
+{
+    // 获取文件界面
+    File* file = Index::getInstance().getFile();
+    // 修改上传状态
+    file->m_bDownload = true;
+}
+
+void Client::startDownloadData(char* buf,int size)
+{
+    emit downloadData(buf,size);
+}
+
+// 完成下载文件的函数
+void Client::onDownloadFinished()
+{
+    QMessageBox::information(Index::getInstance().getFile(),"下载文件","下载文件完成");
+    // 获取文件界面
+    File* file = Index::getInstance().getFile();
+    // 修改上传状态
+    file->m_bDownload = false;
+}
+
+// 打印错误的函数
+void Client::printError(const QString &error)
+{
+    qDebug()<< "upload error"<<error;
+    QMessageBox::information(Index::getInstance().getFile(),"上传文件","上传文件失败");
 }
 
 // 处理响应

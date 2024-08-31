@@ -33,6 +33,21 @@ public:
     PDU* readPDU();
     // 发送PDU
     void sendPDU(PDU* pdu);
+    // 开始上传文件的函数
+    void startUpload();
+    // 完成上传的函数
+    void onUploadFinished();
+    // 打印错误的函数
+    void printError(const QString &error);
+
+    // 开始下载文件的函数
+    void startDownload(qint64 downloadFileSize);
+    void bDownload();
+    // 开始下载数据的函数
+    void startDownloadData(char* buf,int size);
+
+    // 完成下载的函数
+    void onDownloadFinished();
 
 
     // 处理响应
@@ -41,12 +56,17 @@ public:
     // 定义静态成员函数 获取单例对象
     static Client& getInstance();
 
+signals:
+    // 传送数据信号
+    void downloadData(char *buf, int size);
+
 public slots:
     // 客户端发送消息的槽函数
     // void sendMsg();
 
     // 接收消息
     void recvMsg();
+
 
 private slots:
     void on_regist_PB_clicked();

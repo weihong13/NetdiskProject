@@ -465,7 +465,7 @@ void ResHandler::uploadFile()
     if(ret == 0)
     {
         // 初始化上传成功，调用上传数据的函数
-        Index::getInstance().getFile()->uploadFileData();
+        Client::getInstance().startUpload();
     }
     else if(ret == 1)
     {
@@ -509,7 +509,7 @@ void ResHandler::downloadFile()
         memcpy(&fileSize,m_pdu->caData+32,sizeof (qint64));
         qDebug()<<"ResHandler downloadFile fileSize"<<fileSize;
         // 初始化下载成功，调用上传数据的函数
-        Index::getInstance().getFile()->downloadFile(fileSize);
+        Client::getInstance().startDownload(fileSize);
     }
     else if(ret == 1)
     {
@@ -525,7 +525,7 @@ void ResHandler::downloadFile()
 void ResHandler::downloadFileData()
 {
     // 将实际消息与实际消息大小发给 写入函数
-    Index::getInstance().getFile()->downloadFileData(m_pdu->caMsg,m_pdu->uiMsgLen);
+    Client::getInstance().startDownloadData(m_pdu->caMsg,m_pdu->uiMsgLen);
 }
 
 // 分享文件请求

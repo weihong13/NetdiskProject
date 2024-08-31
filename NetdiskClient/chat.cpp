@@ -216,24 +216,5 @@ void Chat::friendChatRes(const char* curName,QString& msg)
     dealMessage(m_SheMsg, m_SheItem, msg, time, QNChatMessage::User_She);
 }
 
-// 在聊天框中加载所有信息
-void Chat::resizeEvent(QResizeEvent *event)
-{
-    Q_UNUSED(event);
 
-
-    ui->inputMsg_TE->resize(this->width() - 20, ui->widget->height() - 20);
-    ui->inputMsg_TE->move(10, 10);
-
-    ui->sendMsg_PB->move(ui->inputMsg_TE->width()+ui->inputMsg_TE->x() - ui->sendMsg_PB->width() - 10,
-                         ui->inputMsg_TE->height()+ui->inputMsg_TE->y() - ui->sendMsg_PB->height() - 10);
-
-
-    for(int i = 0; i < ui->showMsg_LW->count(); i++) {
-        QNChatMessage* messageW = (QNChatMessage*)ui->showMsg_LW->itemWidget(ui->showMsg_LW->item(i));
-        QListWidgetItem* item = ui->showMsg_LW->item(i);
-
-        dealMessage(messageW, item, messageW->text(), messageW->time(), messageW->userType());
-    }
-}
 

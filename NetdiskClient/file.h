@@ -53,6 +53,22 @@ public:
     // 选择路径的界面
     SelectPath* m_selectPath;
 
+    // 是否正在上传
+    bool m_bUpload;
+    // 当前上传文件的路径
+    QString m_strUploadFilePath;
+
+    // 当前是否有文件在下载
+    bool m_bDownload;
+    // 要下载到的本机地址
+    QString m_strDownloadFilePath;
+    // 下载文件的总大小
+    qint64 m_downloadFileSize;
+    // 已经接收的大小
+    qint64 m_downloadRecvSize;
+    // 打开的文件
+    QFile m_downloadFile;
+
 private slots:
     void on_mkdir_PB_clicked();
 
@@ -82,21 +98,10 @@ private:
     QString m_rootPath;
     // 用户的当前目录
     QString m_curPath;
-    // 是否正在上传
-    bool m_bUpload;
-    // 当前上传文件的路径
-    QString m_strUploadFilePath;
 
-    // 当前是否有文件在下载
-    bool m_bDownload;
-    // 要下载到的本机地址
-    QString m_strDownloadFilePath;
-    // 下载文件的总大小
-    qint64 m_downloadFileSize;
-    // 已经接收的大小
-    qint64 m_downloadRecvSize;
-    // 打开的文件
-    QFile m_downloadFile;
+
+
+
 
 
 

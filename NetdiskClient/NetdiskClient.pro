@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     chat.cpp \
+    downloader.cpp \
     file.cpp \
     friend.cpp \
     index.cpp \
@@ -28,11 +29,13 @@ SOURCES += \
     qnchatmessage.cpp \
     reshandler.cpp \
     selectpath.cpp \
-    sharefile.cpp
+    sharefile.cpp \
+    uploader.cpp
 
 HEADERS += \
     chat.h \
     client.h \
+    downloader.h \
     file.h \
     friend.h \
     index.h \
@@ -42,7 +45,8 @@ HEADERS += \
     qnchatmessage.h \
     reshandler.h \
     selectpath.h \
-    sharefile.h
+    sharefile.h \
+    uploader.h
 
 FORMS += \
     chat.ui \

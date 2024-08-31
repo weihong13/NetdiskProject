@@ -17,10 +17,18 @@ class Chat : public QWidget
 public:
     explicit Chat(QWidget *parent = nullptr);
     ~Chat();
-    // 响应消息
+    // 响应聊天消息
     void friendChatRes(const char* curName,QString&  msg);
+
+    // 消息聊天框获取消息
+    void dealMessage(QNChatMessage *messageW, QListWidgetItem *item, QString text, QString time, QNChatMessage::User_Type type);
+    // 获取时间
+    void dealMessageTime(QString curMsgTime);
+
     // 展示不同好友的消息记录
     void showChatHistory(const QString& friendName);
+    // 保存消息记录
+    void saveChatHistory(QString& msg,QString& time,QNChatMessage::User_Type type);
 
     // 当前客户端用户名
     QString m_curName;
@@ -30,20 +38,13 @@ public:
     Ui::Chat *ui;
 
 protected:
-    // 在聊天框中加载所有信息
-    void resizeEvent(QResizeEvent *event);
 
 private slots:
     // 发送消息的槽函数
     void on_sendMsg_PB_clicked();
 
 private:
-    // 消息聊天框获取消息
-    void dealMessage(QNChatMessage *messageW, QListWidgetItem *item, QString text, QString time, QNChatMessage::User_Type type);
-    // 获取时间
-    void dealMessageTime(QString curMsgTime);
-    // 保存消息记录
-    void saveChatHistory(QString& msg,QString& time,QNChatMessage::User_Type type);
+
 
 
     // 处理自己消息的对像
